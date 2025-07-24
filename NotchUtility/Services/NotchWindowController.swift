@@ -11,9 +11,9 @@ import SwiftUI
 /**
  * NOTCH OVERLAY HEIGHT CONFIGURATION
  * This determines how much vertical space our overlay window takes from the top of the screen.
- * 200px is enough to accommodate the expanded notch interface without taking too much screen space.
+ * 220px is enough to accommodate the expanded notch interface without taking too much screen space.
  */
-private let notchHeight: CGFloat = 200
+private let notchHeight: CGFloat = 220
 
 /**
  * NotchWindowController: Manages the lifecycle and positioning of our notch overlay window
