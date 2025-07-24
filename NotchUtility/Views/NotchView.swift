@@ -211,7 +211,7 @@ struct NotchView: View {
     
     private var notchHeight: CGFloat {
         if isExpanded {
-            return viewModel.hasFiles ? 220 : 140
+            return 220
         } else {
             return 32
         }
