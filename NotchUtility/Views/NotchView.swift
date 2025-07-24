@@ -43,7 +43,7 @@ struct NotchView: View {
                 isExpanded.toggle()
             }
         }
-        .frame(width: notchWidth, height: notchHeight, alignment: .top)
+        .frame(width: 250, height: 200, alignment: .top)
     }
     
     private var notchBar: some View {
@@ -180,24 +180,6 @@ struct NotchView: View {
                 .buttonStyle(.plain)
                 .foregroundColor(.red)
             }
-        }
-    }
-    
-    // MARK: - Computed Properties
-    
-    private var notchWidth: CGFloat {
-        if isExpanded {
-            return 320
-        } else {
-            return notchDetector.hasNotch ? notchDetector.notchDimensions.width + 40 : 200
-        }
-    }
-    
-    private var notchHeight: CGFloat {
-        if isExpanded {
-            return 220
-        } else {
-            return 32
         }
     }
     
