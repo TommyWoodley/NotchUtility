@@ -15,19 +15,21 @@ struct FileItem: Identifiable, Codable {
     let type: FileType
     let size: Int64
     let dateAdded: Date
+    let contentHash: String
     
     // Non-codable properties (not persisted)
     var thumbnail: NSImage? {
         return generateThumbnail()
     }
     
-    init(id: UUID = UUID(), name: String, path: URL, type: FileType, size: Int64, dateAdded: Date = Date()) {
+    init(id: UUID = UUID(), name: String, path: URL, type: FileType, size: Int64, dateAdded: Date = Date(), contentHash: String = "") {
         self.id = id
         self.name = name
         self.path = path
         self.type = type
         self.size = size
         self.dateAdded = dateAdded
+        self.contentHash = contentHash
     }
     
     private func generateThumbnail() -> NSImage? {

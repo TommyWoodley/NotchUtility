@@ -8,6 +8,7 @@
 import Foundation
 import Combine
 import AppKit
+import CryptoKit
 
 class StorageManager: ObservableObject {
     @Published var storedFiles: [FileItem] = []
@@ -46,6 +47,13 @@ class StorageManager: ObservableObject {
     // MARK: - Public Methods
     
     func addFile(from sourceURL: URL) throws -> FileItem {
+        // Check if file already exists by computing its hash
+        let sourceFileHash = try computeFileHash(at: sourceURL)
+        
+        if let existingFile = storedFiles.first(where: { $0.contentHash == sourceFileHash }) {
+            throw StorageError.duplicateFile(existingFile.name)
+        }
+        
         // Check storage limit
         let fileSize = try getFileSize(at: sourceURL)
         if totalStorageUsed + fileSize > storageLimit * 1024 * 1024 {
@@ -66,7 +74,8 @@ class StorageManager: ObservableObject {
             name: fileName,
             path: destinationURL,
             type: fileType,
-            size: fileSize
+            size: fileSize,
+            contentHash: sourceFileHash
         )
         
         // Add to storage
@@ -138,13 +147,16 @@ class StorageManager: ObservableObject {
                let creationDate = attributes[.creationDate] as? Date {
                 
                 let fileType = FileType.from(fileExtension: fileURL.pathExtension)
+                let contentHash = (try? computeFileHash(at: fileURL)) ?? ""
+                
                 let fileItem = FileItem(
                     id: UUID(),
                     name: fileURL.lastPathComponent,
                     path: fileURL,
                     type: fileType,
                     size: fileSize,
-                    dateAdded: creationDate
+                    dateAdded: creationDate,
+                    contentHash: contentHash
                 )
                 storedFiles.append(fileItem)
             }
@@ -198,6 +210,12 @@ class StorageManager: ObservableObject {
             try? removeFile(file)
         }
     }
+    
+    private func computeFileHash(at url: URL) throws -> String {
+        let data = try Data(contentsOf: url)
+        let hash = SHA256.hash(data: data)
+        return hash.compactMap { String(format: "%02x", $0) }.joined()
+    }
 }
 
 // MARK: - Errors
@@ -206,6 +224,7 @@ enum StorageError: LocalizedError {
     case storageLimitExceeded
     case fileNotFound
     case copyFailed
+    case duplicateFile(String)
     
     var errorDescription: String? {
         switch self {
@@ -215,6 +234,8 @@ enum StorageError: LocalizedError {
             return "File not found."
         case .copyFailed:
             return "Failed to copy file to storage."
+        case .duplicateFile(let fileName):
+            return "File '\(fileName)' already exists in storage."
         }
     }
 } 
