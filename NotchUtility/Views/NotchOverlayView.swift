@@ -403,6 +403,13 @@ struct CompactFileItemView: View {
     }
 }
 
+enum FileAction {
+    case open
+    case revealInFinder
+    case copyPath
+    case remove
+}
+
 struct CompactClipboardItemView: View {
     let item: ClipboardItem
     let onTapped: () -> Void
