@@ -272,6 +272,6 @@ struct CompactFileItemView: View {
 
 #Preview {
     NotchView()
-        .frame(width: 320, height: 200)
+        .frame(width: 320, height: 200, alignment: .top)
         .background(Color.black.opacity(0.1))
-} 
+}
