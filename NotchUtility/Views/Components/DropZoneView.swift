@@ -85,7 +85,21 @@ struct DropZoneView: View {
     }
 }
 
-#Preview {
+#Preview("Small Square") {
+    DropZoneView(
+        isActive: false,
+        onFilesDropped: { urls in
+            print("Files dropped: \(urls)")
+        },
+        onDropStateChanged: { isActive in
+            print("Drop state changed: \(isActive)")
+        }
+    )
+    .frame(width: 200, height: 200)
+    .padding()
+}
+
+#Preview("Medium Rectangle") {
     DropZoneView(
         isActive: false,
         onFilesDropped: { urls in
@@ -96,5 +110,47 @@ struct DropZoneView: View {
         }
     )
     .frame(width: 300, height: 200)
+    .padding()
+}
+
+#Preview("Large Rectangle (Active)") {
+    DropZoneView(
+        isActive: true,
+        onFilesDropped: { urls in
+            print("Files dropped: \(urls)")
+        },
+        onDropStateChanged: { isActive in
+            print("Drop state changed: \(isActive)")
+        }
+    )
+    .frame(width: 400, height: 250)
+    .padding()
+}
+
+#Preview("Wide Banner") {
+    DropZoneView(
+        isActive: false,
+        onFilesDropped: { urls in
+            print("Files dropped: \(urls)")
+        },
+        onDropStateChanged: { isActive in
+            print("Drop state changed: \(isActive)")
+        }
+    )
+    .frame(width: 500, height: 150)
+    .padding()
+}
+
+#Preview("Tall Vertical (Active)") {
+    DropZoneView(
+        isActive: true,
+        onFilesDropped: { urls in
+            print("Files dropped: \(urls)")
+        },
+        onDropStateChanged: { isActive in
+            print("Drop state changed: \(isActive)")
+        }
+    )
+    .frame(width: 200, height: 350)
     .padding()
 } 
