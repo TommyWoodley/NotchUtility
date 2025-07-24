@@ -53,9 +53,8 @@ extension NotchViewModel {
                     if deviceNotchRect.insetBy(dx: inset, dy: inset).contains(mouseLocation) {
                         notchClose()
                     }
-                    // Click outside interface → only close if it was click-opened (not hover-opened)
-                    // This preserves hover behavior where only mouse leaving closes the interface
-                    else if !notchOpenedRect.contains(mouseLocation) && openReason == .click {
+                    // Click outside interface → always close (regardless of how it was opened)
+                    else if !notchOpenedRect.contains(mouseLocation) {
                         notchClose()
                     }
                     

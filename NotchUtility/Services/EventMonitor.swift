@@ -23,7 +23,7 @@ import Cocoa
  */
 class EventMonitor {
     // === MONITOR STORAGE ===
-    private var monitor: Any?                                  // Holds the NSEvent monitor reference
+    private var monitor: Any?                                 // Holds the NSEvent monitor reference
     private let mask: NSEvent.EventTypeMask                   // Which types of events to monitor
     private let handler: (NSEvent?) -> Void                   // Callback function for when events occur
 
