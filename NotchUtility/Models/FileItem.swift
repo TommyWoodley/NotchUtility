@@ -1,0 +1,91 @@
+//
+//  FileItem.swift
+//  NotchUtility
+//
+//  Created by thwoodle on 24/07/2025.
+//
+
+import Foundation
+import AppKit
+
+struct FileItem: Identifiable, Codable {
+    let id: UUID
+    let name: String
+    let path: URL
+    let type: FileType
+    let size: Int64
+    let dateAdded: Date
+    
+    // Non-codable properties (not persisted)
+    var thumbnail: NSImage? {
+        return generateThumbnail()
+    }
+    
+    init(id: UUID = UUID(), name: String, path: URL, type: FileType, size: Int64, dateAdded: Date = Date()) {
+        self.id = id
+        self.name = name
+        self.path = path
+        self.type = type
+        self.size = size
+        self.dateAdded = dateAdded
+    }
+    
+    private func generateThumbnail() -> NSImage? {
+        let workspace = NSWorkspace.shared
+        return workspace.icon(forFile: path.path)
+    }
+    
+    var formattedSize: String {
+        ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
+    }
+    
+    var fileExtension: String {
+        path.pathExtension.lowercased()
+    }
+}
+
+enum FileType: String, CaseIterable, Codable {
+    case document = "document"
+    case image = "image"
+    case archive = "archive"
+    case code = "code"
+    case other = "other"
+    
+    static func from(fileExtension: String) -> FileType {
+        let ext = fileExtension.lowercased()
+        
+        // TODO: Add more file types
+        switch ext {
+        case "pdf", "doc", "docx", "txt", "rtf", "pages":
+            return .document
+        case "jpg", "jpeg", "png", "gif", "bmp", "tiff", "heic", "webp":
+            return .image
+        case "zip", "rar", "7z", "tar", "gz", "dmg", "pkg":
+            return .archive
+        case "swift", "py", "js", "ts", "html", "css", "json", "xml", "java", "cpp", "c", "h":
+            return .code
+        default:
+            return .other
+        }
+    }
+    
+    var displayName: String {
+        switch self {
+        case .document: return "Document"
+        case .image: return "Image"
+        case .archive: return "Archive"
+        case .code: return "Code"
+        case .other: return "Other"
+        }
+    }
+    
+    var systemIcon: String {
+        switch self {
+        case .document: return "doc.text"
+        case .image: return "photo"
+        case .archive: return "archivebox"
+        case .code: return "chevron.left.forwardslash.chevron.right"
+        case .other: return "questionmark.circle"
+        }
+    }
+} 
