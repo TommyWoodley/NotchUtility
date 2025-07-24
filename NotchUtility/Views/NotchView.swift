@@ -15,6 +15,7 @@ struct NotchView: View {
     @State private var isExpanded = false
     @State private var isHovered = false
     @State private var isPermanentlyExpanded = false
+    @State private var isDragHovered = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -22,7 +23,7 @@ struct NotchView: View {
             notchBar
             
             // Expandable content area
-            if isExpanded || isPermanentlyExpanded {
+            if isExpanded || isPermanentlyExpanded || isDragHovered {
                 expandedContent
                     .transition(.asymmetric(
                         insertion: .move(edge: .top).combined(with: .opacity),
@@ -52,6 +53,10 @@ struct NotchView: View {
                     isExpanded = false
                 }
             }
+        }
+        .onDrop(of: [.fileURL], isTargeted: $isDragHovered) { providers in
+            handleDrop(providers: providers)
+            return true
         }
         .frame(width: 250, height: 200, alignment: .top)
     }
@@ -122,10 +127,11 @@ struct NotchView: View {
     }
     
     private var expandIndicator: some View {
-        Image(systemName: (isExpanded || isPermanentlyExpanded) ? "chevron.up" : "chevron.down")
+        let isCurrentlyExpanded = isExpanded || isPermanentlyExpanded || isDragHovered
+        return Image(systemName: isCurrentlyExpanded ? "chevron.up" : "chevron.down")
             .font(.caption2)
             .foregroundColor(isPermanentlyExpanded ? .accentColor : .secondary)
-            .rotationEffect(.degrees((isExpanded || isPermanentlyExpanded) ? 180 : 0))
+            .rotationEffect(.degrees(isCurrentlyExpanded ? 180 : 0))
     }
     
     private var expandedContent: some View {
@@ -227,6 +233,31 @@ struct NotchView: View {
             viewModel.copyPathToClipboard(file)
         case .remove:
             viewModel.removeFile(file)
+        }
+    }
+    
+    private func handleDrop(providers: [NSItemProvider]) {
+        let group = DispatchGroup()
+        var urls: [URL] = []
+        
+        for provider in providers {
+            if provider.canLoadObject(ofClass: URL.self) {
+                group.enter()
+                provider.loadObject(ofClass: URL.self) { url, error in
+                    defer { group.leave() }
+                    
+                    if let url = url, url.isFileURL {
+                        urls.append(url)
+                    }
+                }
+            }
+        }
+        
+        group.notify(queue: .main) {
+            if !urls.isEmpty {
+                viewModel.handleFilesDrop(urls)
+            }
+            isDragHovered = false
         }
     }
 }
