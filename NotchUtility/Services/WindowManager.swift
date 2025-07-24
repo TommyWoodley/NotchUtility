@@ -41,8 +41,8 @@ class WindowManager: ObservableObject {
         window.level = alwaysOnTop ? .floating : .normal
         currentWindowLevel = window.level
         
-        // Configure for floating behavior
-        window.isMovableByWindowBackground = true
+        // Configure for floating behavior - disable global window dragging
+        window.isMovableByWindowBackground = false
         window.canHide = false
         window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         

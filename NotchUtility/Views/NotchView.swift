@@ -67,6 +67,20 @@ struct NotchView: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color.black.opacity(isHovered ? 0.1 : 0.05))
         )
+        .gesture(
+            DragGesture()
+                .onChanged { value in
+                    // Move the window as the user drags
+                    if let window = NSApplication.shared.windows.first {
+                        let currentLocation = window.frame.origin
+                        let newLocation = CGPoint(
+                            x: currentLocation.x + value.translation.width,
+                            y: currentLocation.y - value.translation.height // Invert Y coordinate
+                        )
+                        window.setFrameOrigin(newLocation)
+                    }
+                }
+        )
     }
     
     private var storageIndicator: some View {
@@ -245,6 +259,12 @@ struct CompactFileItemView: View {
             withAnimation(.easeInOut(duration: 0.15)) {
                 isHovered = hovering
             }
+        }
+        .onDrag {
+            // Create drag item provider with the file URL
+            let provider = NSItemProvider(object: file.path as NSURL)
+            provider.suggestedName = file.name
+            return provider
         }
         .onTapGesture(count: 2) {
             onAction(.open, file)

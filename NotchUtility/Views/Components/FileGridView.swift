@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct FileGridView: View {
     let files: [FileItem]
@@ -72,6 +73,12 @@ struct FileItemView: View {
             withAnimation(.easeInOut(duration: 0.15)) {
                 isHovered = hovering
             }
+        }
+        .onDrag {
+            // Create drag item provider with the file URL
+            let provider = NSItemProvider(object: file.path as NSURL)
+            provider.suggestedName = file.name
+            return provider
         }
         .contextMenu {
             Button("Open") {
