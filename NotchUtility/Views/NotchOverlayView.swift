@@ -370,21 +370,53 @@ struct NotchContentView: View {
 
 @MainActor
 private func createMockViewModel(status: NotchViewModel.Status) -> NotchViewModel {
-    let vm = NotchViewModel(inset: -4)
+    let vm = PreviewNotchViewModel(targetStatus: status)
+    return vm
+}
+
+// MARK: - Preview-specific ViewModel
+
+@MainActor
+private class PreviewNotchViewModel: NotchViewModel {
+    private let targetStatus: Status
+    private var isLocked = false
     
-    // Set up mock geometry
-    vm.deviceNotchRect = CGRect(x: 0, y: 0, width: 200, height: 30)
-    vm.screenRect = CGRect(x: 0, y: 0, width: 400, height: 200)
-    
-    // Set the status after a brief delay to simulate real behavior
-    switch status {
-    case .closed:
-        vm.notchClose()
-    case .opened:
-        vm.notchOpen(.click)
-    case .popping:
-        vm.notchPop()
+    init(targetStatus: Status) {
+        self.targetStatus = targetStatus
+        super.init(inset: -4)
+        
+        // Set up mock geometry
+        deviceNotchRect = CGRect(x: 0, y: 0, width: 200, height: 30)
+        screenRect = CGRect(x: 0, y: 0, width: 400, height: 200)
+        
+        // Set the target status using public methods
+        switch targetStatus {
+        case .closed:
+            notchClose()
+        case .opened:
+            notchOpen(.click)
+        case .popping:
+            notchPop()
+        }
+        
+        // Now lock the state and disable event handling
+        isLocked = true
+        destroy()
     }
     
-    return vm
+    // Prevent any state changes in previews after locking
+    override func notchOpen(_ reason: OpenReason) {
+        if isLocked { return }
+        super.notchOpen(reason)
+    }
+    
+    override func notchClose() {
+        if isLocked { return }
+        super.notchClose()
+    }
+    
+    override func notchPop() {
+        if isLocked { return }
+        super.notchPop()
+    }
 } 
