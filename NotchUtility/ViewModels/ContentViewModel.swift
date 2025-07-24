@@ -15,7 +15,6 @@ class ContentViewModel: ObservableObject {
     @Published var isDropTargetActive = false
     @Published var showingError = false
     @Published var errorMessage = ""
-    @Published var showingSettings = false
     
     private var cancellables = Set<AnyCancellable>()
     
@@ -71,13 +70,7 @@ class ContentViewModel: ObservableObject {
         }
     }
     
-    func showSettings() {
-        showingSettings = true
-    }
-    
-    func hideSettings() {
-        showingSettings = false
-    }
+
     
     // MARK: - Computed Properties
     

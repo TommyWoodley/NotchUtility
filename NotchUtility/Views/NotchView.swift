@@ -1,0 +1,298 @@
+//
+//  NotchView.swift
+//  NotchUtility
+//
+//  Created by thwoodle on 24/07/2025.
+//
+
+import SwiftUI
+
+struct NotchView: View {
+    @StateObject private var viewModel = ContentViewModel()
+    @EnvironmentObject var windowManager: WindowManager
+    @StateObject private var notchDetector = NotchDetector()
+    
+    @State private var isExpanded = false
+    @State private var isHovered = false
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Compact notch bar
+            notchBar
+            
+            // Expandable content area
+            if isExpanded {
+                expandedContent
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .top).combined(with: .opacity),
+                        removal: .move(edge: .top).combined(with: .opacity)
+                    ))
+            }
+        }
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(.ultraThinMaterial)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(.white.opacity(0.2), lineWidth: 1)
+                )
+        )
+        .shadow(color: .black.opacity(0.25), radius: 12, x: 0, y: 6)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHovered = hovering
+            }
+        }
+        .onTapGesture {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                isExpanded.toggle()
+            }
+        }
+        .frame(width: notchWidth, height: notchHeight)
+    }
+    
+    private var notchBar: some View {
+        HStack(spacing: 8) {
+            // Storage indicator
+            storageIndicator
+            
+            Spacer()
+            
+            // File count badge
+            if viewModel.hasFiles {
+                fileCountBadge
+            }
+            
+            // Expand/collapse indicator
+            expandIndicator
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.black.opacity(isHovered ? 0.1 : 0.05))
+        )
+    }
+    
+    private var storageIndicator: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "internaldrive")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Text(viewModel.formattedStorageUsage)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+    }
+    
+    private var fileCountBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "doc.on.doc")
+                .font(.caption2)
+            
+            Text("\(viewModel.storageManager.storedFiles.count)")
+                .font(.caption2)
+                .fontWeight(.medium)
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(Color.accentColor.opacity(0.8))
+        .foregroundColor(.white)
+        .clipShape(Capsule())
+    }
+    
+    private var expandIndicator: some View {
+        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+            .font(.caption2)
+            .foregroundColor(.secondary)
+            .rotationEffect(.degrees(isExpanded ? 180 : 0))
+    }
+    
+    private var expandedContent: some View {
+        VStack(spacing: 12) {
+            // Drop zone when no files
+            if !viewModel.hasFiles {
+                compactDropZone
+            } else {
+                // Compact file grid
+                compactFileGrid
+            }
+            
+            // Quick actions
+            quickActions
+        }
+        .padding(12)
+    }
+    
+    private var compactDropZone: some View {
+        DropZoneView(
+            isActive: viewModel.isDropTargetActive,
+            onFilesDropped: viewModel.handleFilesDrop,
+            onDropStateChanged: viewModel.setDropTargetActive
+        )
+        .frame(height: 80)
+        .clipShape(RoundedRectangle(cornerRadius: 8))
+    }
+    
+    private var compactFileGrid: some View {
+        ScrollView {
+            LazyVGrid(columns: [
+                GridItem(.adaptive(minimum: 40, maximum: 60), spacing: 8)
+            ], spacing: 8) {
+                ForEach(viewModel.storageManager.storedFiles.prefix(6)) { file in
+                    CompactFileItemView(file: file) { action, file in
+                        handleFileAction(action, file)
+                    }
+                }
+                
+                if viewModel.storageManager.storedFiles.count > 6 {
+                    moreFilesIndicator
+                }
+            }
+            .padding(.horizontal, 4)
+        }
+        .frame(maxHeight: 120)
+    }
+    
+    private var moreFilesIndicator: some View {
+        VStack(spacing: 2) {
+            Image(systemName: "ellipsis")
+                .font(.caption)
+                .foregroundColor(.secondary)
+            
+            Text("+\(viewModel.storageManager.storedFiles.count - 6)")
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+        .frame(width: 40, height: 40)
+        .background(Color.secondary.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 6))
+    }
+    
+    private var quickActions: some View {
+        HStack(spacing: 12) {
+            // Clear all button (if files exist)
+            if viewModel.hasFiles {
+                Button(action: viewModel.removeAllFiles) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "trash")
+                            .font(.caption)
+                        Text("Clear All")
+                            .font(.caption2)
+                    }
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.red)
+            }
+            
+            Spacer()
+            
+            // Minimize button
+            Button(action: { 
+                NSApplication.shared.hide(nil)
+            }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "minus.circle")
+                        .font(.caption)
+                    Text("Hide")
+                        .font(.caption2)
+                }
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.secondary)
+        }
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var notchWidth: CGFloat {
+        if isExpanded {
+            return 320
+        } else {
+            return notchDetector.hasNotch ? notchDetector.notchDimensions.width + 40 : 200
+        }
+    }
+    
+    private var notchHeight: CGFloat {
+        if isExpanded {
+            return viewModel.hasFiles ? 220 : 140
+        } else {
+            return 32
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func handleFileAction(_ action: FileAction, _ file: FileItem) {
+        switch action {
+        case .open:
+            viewModel.openFile(file)
+        case .revealInFinder:
+            viewModel.revealInFinder(file)
+        case .copyPath:
+            viewModel.copyPathToClipboard(file)
+        case .remove:
+            viewModel.removeFile(file)
+        }
+    }
+}
+
+// MARK: - CompactFileItemView
+
+struct CompactFileItemView: View {
+    let file: FileItem
+    let onAction: (FileAction, FileItem) -> Void
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            // File icon
+            if let thumbnail = file.thumbnail {
+                Image(nsImage: thumbnail)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 24, height: 24)
+            } else {
+                Image(systemName: file.type.systemIcon)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .frame(width: 24, height: 24)
+            }
+            
+            // File name (truncated)
+            Text(file.name)
+                .font(.caption2)
+                .lineLimit(1)
+                .truncationMode(.middle)
+        }
+        .frame(width: 40, height: 40)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(isHovered ? Color.accentColor.opacity(0.1) : Color.clear)
+        )
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isHovered = hovering
+            }
+        }
+        .onTapGesture(count: 2) {
+            onAction(.open, file)
+        }
+        .contextMenu {
+            Button("Open") { onAction(.open, file) }
+            Button("Reveal in Finder") { onAction(.revealInFinder, file) }
+            Button("Copy Path") { onAction(.copyPath, file) }
+            Divider()
+            Button("Remove", role: .destructive) { onAction(.remove, file) }
+        }
+        .help(file.name)
+    }
+}
+
+#Preview {
+    NotchView()
+        .frame(width: 320, height: 200)
+        .background(Color.black.opacity(0.1))
+} 

@@ -24,11 +24,6 @@ struct ContentView: View {
             .navigationTitle("NotchUtility")
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
-                    Button(action: viewModel.showSettings) {
-                        Image(systemName: "gear")
-                    }
-                    .help("Settings")
-                    
                     if viewModel.hasFiles {
                         Button(action: viewModel.removeAllFiles) {
                             Image(systemName: "trash")
@@ -43,9 +38,7 @@ struct ContentView: View {
         } message: {
             Text(viewModel.errorMessage)
         }
-        .sheet(isPresented: $viewModel.showingSettings) {
-            SettingsView(storageManager: viewModel.storageManager)
-        }
+
     }
     
     private var headerView: some View {
@@ -125,48 +118,7 @@ struct ContentView: View {
     }
 }
 
-struct SettingsView: View {
-    @ObservedObject var storageManager: StorageManager
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationView {
-            Form {
-                Section("Storage") {
-                    HStack {
-                        Text("Storage Limit (MB)")
-                        Spacer()
-                        TextField("Storage Limit", value: $storageManager.storageLimit, format: .number)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 80)
-                    }
-                    
-                    HStack {
-                        Text("Auto-cleanup after (hours)")
-                        Spacer()
-                        TextField("Hours", value: $storageManager.retentionHours, format: .number)
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 80)
-                    }
-                }
-                
-                Section("Information") {
-                    LabeledContent("Files Stored", value: "\(storageManager.storedFiles.count)")
-                    LabeledContent("Storage Used", value: ByteCountFormatter.string(fromByteCount: storageManager.totalStorageUsed, countStyle: .file))
-                }
-            }
-            .navigationTitle("Settings")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Done") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-        .frame(width: 400, height: 300)
-    }
-}
+
 
 #Preview {
     ContentView()

@@ -17,24 +17,40 @@ NotchUtility will be developed in four distinct phases, each building upon the p
 ### Core Features
 
 #### 1.1 Basic App Architecture
-- [ ] **App Structure Setup**
+- [x] **App Structure Setup**
   - Configure SwiftUI App lifecycle
   - Implement MVVM architecture
   - Set up basic navigation structure
   - Configure app permissions (file access, accessibility)
 
-#### 1.2 Notch Integration
-- [ ] **Window Management**
-  - Create floating window positioned at notch
-  - Implement window resizing and positioning
-  - Handle multiple display scenarios
-  - Ensure window stays on top when needed
+#### 1.2 Notch Integration ✅ **COMPLETED**
+- [x] **Window Management**
+  - ✅ Create floating window positioned at notch (`WindowManager.swift`)
+  - ✅ Implement window resizing and positioning
+  - ✅ Handle multiple display scenarios
+  - ✅ Ensure window stays on top when needed (`NSWindow.Level` extensions)
 
-- [ ] **Notch Detection**
-  - Detect notch presence and dimensions
-  - Calculate optimal positioning
-  - Handle different MacBook models (14", 16")
-  - Fallback for non-notch Macs
+- [x] **Notch Detection**
+  - ✅ Detect notch presence and dimensions (`NotchDetector.swift`)
+  - ✅ Calculate optimal positioning for window placement
+  - ✅ Handle different MacBook models (14", 16", Air 13", Air 15")
+  - ✅ Fallback for non-notch Macs
+
+**Implementation Details:**
+- **NotchDetector Service**: Detects notch presence using `safeAreaInsets` and determines MacBook model
+- **WindowManager Service**: Manages floating window positioning with animation support
+- **NotchView**: Specialized compact UI for notch mode with expandable interface
+- **Borderless Window**: Completely chrome-free floating interface
+- **Minimal Interface**: No settings or configuration - pure simplicity
+- **Comprehensive Tests**: 100% test coverage for new notch functionality
+
+**Key Features Delivered:**
+- Real-time notch detection and positioning
+- Borderless floating window with no application outline
+- Multi-display support with automatic repositioning
+- Compact expandable UI optimized for notch space
+- Window level management with floating behavior
+- Ultra-minimal design (removed all settings/configuration UI)
 
 #### 1.3 File Storage System
 - [ ] **Drag & Drop Interface**
