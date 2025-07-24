@@ -8,6 +8,9 @@
 
 /* Begin PBXBuildFile section */
 		A8D19A3A2E325A1F0059DF4B /* ideas.md in Resources */ = {isa = PBXBuildFile; fileRef = A8D19A392E325A1F0059DF4B /* ideas.md */; };
+		A8D19A5A2E32A5150059DF4B /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = A8D19A592E32A5150059DF4B /* README.md */; };
+		A8D19A5B2E32A5150059DF4B /* DEVELOPMENT_PLAN.md in Resources */ = {isa = PBXBuildFile; fileRef = A8D19A582E32A5150059DF4B /* DEVELOPMENT_PLAN.md */; };
+		A8D19A5C2E32A5150059DF4B /* arch_design.md in Resources */ = {isa = PBXBuildFile; fileRef = A8D19A572E32A5150059DF4B /* arch_design.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -32,6 +35,9 @@
 		A8961DD22E32275B008833D5 /* NotchUtilityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NotchUtilityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8961DDC2E32275B008833D5 /* NotchUtilityUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NotchUtilityUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8D19A392E325A1F0059DF4B /* ideas.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ideas.md; sourceTree = "<group>"; };
+		A8D19A572E32A5150059DF4B /* arch_design.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = arch_design.md; sourceTree = "<group>"; };
+		A8D19A582E32A5150059DF4B /* DEVELOPMENT_PLAN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DEVELOPMENT_PLAN.md; sourceTree = "<group>"; };
+		A8D19A592E32A5150059DF4B /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -80,6 +86,9 @@
 		A8961DBB2E322759008833D5 = {
 			isa = PBXGroup;
 			children = (
+				A8D19A572E32A5150059DF4B /* arch_design.md */,
+				A8D19A582E32A5150059DF4B /* DEVELOPMENT_PLAN.md */,
+				A8D19A592E32A5150059DF4B /* README.md */,
 				A8D19A392E325A1F0059DF4B /* ideas.md */,
 				A8961DC62E322759008833D5 /* NotchUtility */,
 				A8961DD52E32275B008833D5 /* NotchUtilityTests */,
@@ -218,6 +227,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A8D19A5A2E32A5150059DF4B /* README.md in Resources */,
+				A8D19A5B2E32A5150059DF4B /* DEVELOPMENT_PLAN.md in Resources */,
+				A8D19A5C2E32A5150059DF4B /* arch_design.md in Resources */,
 				A8D19A3A2E325A1F0059DF4B /* ideas.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
