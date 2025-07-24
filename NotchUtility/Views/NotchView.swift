@@ -110,24 +110,32 @@ struct NotchView: View {
             if !viewModel.hasFiles {
                 compactDropZone
             } else {
-                // Compact file grid
-                compactFileGrid
+                // Compact file grid with overlay feedback
+                ZStack {
+                    compactFileGrid
+                    
+                    // Drop overlay when active
+                    if viewModel.isDropTargetActive {
+                        DropZoneView(style: .overlay, isActive: true)
+                            .transition(.opacity)
+                    }
+                }
             }
             
             // Quick actions
             quickActions
         }
         .padding(12)
+        .dropZone(
+            isTargeted: $viewModel.isDropTargetActive,
+            onFilesDropped: viewModel.handleFilesDrop
+        )
     }
     
     private var compactDropZone: some View {
-        DropZoneView(
-            isActive: viewModel.isDropTargetActive,
-            onFilesDropped: viewModel.handleFilesDrop,
-            onDropStateChanged: viewModel.setDropTargetActive
-        )
-        .frame(height: 80)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        DropZoneView(style: .standard, isActive: viewModel.isDropTargetActive)
+            .frame(height: 80)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
     }
     
     private var compactFileGrid: some View {

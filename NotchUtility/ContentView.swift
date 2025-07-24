@@ -70,20 +70,29 @@ struct ContentView: View {
                 emptyStateView
             }
         }
+        .dropZone(
+            isTargeted: $viewModel.isDropTargetActive,
+            onFilesDropped: viewModel.handleFilesDrop
+        )
     }
     
     private var fileListView: some View {
-        FileGridView(files: viewModel.storageManager.storedFiles) { action, file in
-            switch action {
-            case .open:
-                viewModel.openFile(file)
-            case .revealInFinder:
-                viewModel.revealInFinder(file)
-            case .copyPath:
-                viewModel.copyPathToClipboard(file)
-            case .remove:
-                viewModel.removeFile(file)
+        ZStack {
+            FileGridView(files: viewModel.storageManager.storedFiles) { action, file in
+                switch action {
+                case .open:
+                    viewModel.openFile(file)
+                case .revealInFinder:
+                    viewModel.revealInFinder(file)
+                case .copyPath:
+                    viewModel.copyPathToClipboard(file)
+                case .remove:
+                    viewModel.removeFile(file)
+                }
             }
+            
+            // Overlay drop zone visual feedback
+            DropZoneView(style: .overlay, isActive: viewModel.isDropTargetActive)
         }
     }
     
@@ -91,12 +100,8 @@ struct ContentView: View {
         VStack(spacing: 20) {
             Spacer()
             
-            DropZoneView(
-                isActive: viewModel.isDropTargetActive,
-                onFilesDropped: viewModel.handleFilesDrop,
-                onDropStateChanged: viewModel.setDropTargetActive
-            )
-            .frame(maxWidth: 400, maxHeight: 200)
+            DropZoneView(style: .standard, isActive: viewModel.isDropTargetActive)
+                .frame(maxWidth: 400, maxHeight: 200)
             
             VStack(spacing: 8) {
                 Text("Welcome to NotchUtility")
