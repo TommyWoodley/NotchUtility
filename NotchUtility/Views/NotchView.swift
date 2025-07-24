@@ -180,22 +180,6 @@ struct NotchView: View {
                 .buttonStyle(.plain)
                 .foregroundColor(.red)
             }
-            
-            Spacer()
-            
-            // Minimize button
-            Button(action: { 
-                NSApplication.shared.hide(nil)
-            }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "minus.circle")
-                        .font(.caption)
-                    Text("Hide")
-                        .font(.caption2)
-                }
-            }
-            .buttonStyle(.plain)
-            .foregroundColor(.secondary)
         }
     }
     
