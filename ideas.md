@@ -4,8 +4,9 @@
 -
 
 ## Small Feature Ideas
-- Allow drag in when files already in there
-- Drag and Drop out of file
+[x] Allow drag in when files already in there
+[ ] Make file icons bigger to allow better reading
+[ ] Drag and Drop out of file
 
 ## Big Feature Ideas
 - Copy Paste Clipboard

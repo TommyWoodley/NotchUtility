@@ -17,9 +17,15 @@ class ContentViewModel: ObservableObject {
     @Published var errorMessage = ""
     
     private var cancellables = Set<AnyCancellable>()
+    private var validationTimer: Timer?
     
     init() {
         setupBindings()
+        setupFileValidation()
+    }
+    
+    deinit {
+        validationTimer?.invalidate()
     }
     
     // MARK: - File Operations
@@ -62,6 +68,10 @@ class ContentViewModel: ObservableObject {
         storageManager.copyPathToClipboard(fileItem)
     }
     
+    func validateFiles() {
+        storageManager.validateAndCleanupFiles()
+    }
+    
     // MARK: - UI State Management
     
     func setDropTargetActive(_ active: Bool) {
@@ -95,6 +105,24 @@ class ContentViewModel: ObservableObject {
         storageManager.objectWillChange
             .sink { [weak self] in
                 self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+    }
+    
+    private func setupFileValidation() {
+        // Validate files every 5 seconds to clean up any that were dragged out
+        validationTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.validateFiles()
+            }
+        }
+        
+        // Also validate files when the app becomes active
+        NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.validateFiles()
+                }
             }
             .store(in: &cancellables)
     }

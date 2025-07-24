@@ -228,55 +228,68 @@ struct CompactFileItemView: View {
     let onAction: (FileAction, FileItem) -> Void
     
     @State private var isHovered = false
+    @State private var fileExists = true
     
     var body: some View {
-        VStack(spacing: 4) {
-            // File icon
-            if let thumbnail = file.thumbnail {
-                Image(nsImage: thumbnail)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 24, height: 24)
-            } else {
-                Image(systemName: file.type.systemIcon)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .frame(width: 24, height: 24)
+        if fileExists {
+            VStack(spacing: 4) {
+                // File icon
+                if let thumbnail = file.thumbnail {
+                    Image(nsImage: thumbnail)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 24, height: 24)
+                } else {
+                    Image(systemName: file.type.systemIcon)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(width: 24, height: 24)
+                }
+                
+                // File name (truncated)
+                Text(file.name)
+                    .font(.caption2)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
             }
-            
-            // File name (truncated)
-            Text(file.name)
-                .font(.caption2)
-                .lineLimit(1)
-                .truncationMode(.middle)
-        }
-        .frame(width: 40, height: 40)
-        .background(
-            RoundedRectangle(cornerRadius: 6)
-                .fill(isHovered ? Color.accentColor.opacity(0.1) : Color.clear)
-        )
-        .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.15)) {
-                isHovered = hovering
+            .frame(width: 40, height: 40)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isHovered ? Color.accentColor.opacity(0.1) : Color.clear)
+            )
+            .onHover { hovering in
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    isHovered = hovering
+                }
+            }
+            .onDrag {
+                // Create drag item provider with the file URL
+                let provider = NSItemProvider(object: file.path as NSURL)
+                provider.suggestedName = file.name
+                return provider
+            }
+            .onTapGesture(count: 2) {
+                onAction(.open, file)
+            }
+            .contextMenu {
+                Button("Open") { onAction(.open, file) }
+                Button("Reveal in Finder") { onAction(.revealInFinder, file) }
+                Button("Copy Path") { onAction(.copyPath, file) }
+                Divider()
+                Button("Remove", role: .destructive) { onAction(.remove, file) }
+            }
+            .help(file.name)
+            .onAppear {
+                checkFileExists()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                checkFileExists()
             }
         }
-        .onDrag {
-            // Create drag item provider with the file URL
-            let provider = NSItemProvider(object: file.path as NSURL)
-            provider.suggestedName = file.name
-            return provider
-        }
-        .onTapGesture(count: 2) {
-            onAction(.open, file)
-        }
-        .contextMenu {
-            Button("Open") { onAction(.open, file) }
-            Button("Reveal in Finder") { onAction(.revealInFinder, file) }
-            Button("Copy Path") { onAction(.copyPath, file) }
-            Divider()
-            Button("Remove", role: .destructive) { onAction(.remove, file) }
-        }
-        .help(file.name)
+    }
+    
+    private func checkFileExists() {
+        fileExists = FileManager.default.fileExists(atPath: file.path.path)
     }
 }
 

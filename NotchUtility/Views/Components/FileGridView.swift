@@ -33,75 +33,88 @@ struct FileItemView: View {
     let onAction: (FileAction, FileItem) -> Void
     
     @State private var isHovered = false
+    @State private var fileExists = true
     
     var body: some View {
-        VStack(spacing: 8) {
-            // File thumbnail/icon
-            Group {
-                if let thumbnail = file.thumbnail {
-                    Image(nsImage: thumbnail)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                } else {
-                    Image(systemName: file.type.systemIcon)
-                        .font(.largeTitle)
-                        .foregroundColor(.secondary)
+        if fileExists {
+            VStack(spacing: 8) {
+                // File thumbnail/icon
+                Group {
+                    if let thumbnail = file.thumbnail {
+                        Image(nsImage: thumbnail)
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                    } else {
+                        Image(systemName: file.type.systemIcon)
+                            .font(.largeTitle)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                .frame(width: 48, height: 48)
+                .background(Color(nsColor: .controlBackgroundColor))
+                .cornerRadius(8)
+                
+                // File name
+                Text(file.name)
+                    .font(.caption)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+                    .foregroundColor(.primary)
+                
+                // File size
+                Text(file.formattedSize)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            .frame(width: 120, height: 150)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isHovered ? Color(nsColor: .controlAccentColor).opacity(0.1) : Color.clear)
+            )
+            .onHover { hovering in
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    isHovered = hovering
                 }
             }
-            .frame(width: 48, height: 48)
-            .background(Color(nsColor: .controlBackgroundColor))
-            .cornerRadius(8)
-            
-            // File name
-            Text(file.name)
-                .font(.caption)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-                .foregroundColor(.primary)
-            
-            // File size
-            Text(file.formattedSize)
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
-        .frame(width: 120, height: 150)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(isHovered ? Color(nsColor: .controlAccentColor).opacity(0.1) : Color.clear)
-        )
-        .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.15)) {
-                isHovered = hovering
+            .onDrag {
+                // Create drag item provider with the file URL
+                let provider = NSItemProvider(object: file.path as NSURL)
+                provider.suggestedName = file.name
+                return provider
             }
-        }
-        .onDrag {
-            // Create drag item provider with the file URL
-            let provider = NSItemProvider(object: file.path as NSURL)
-            provider.suggestedName = file.name
-            return provider
-        }
-        .contextMenu {
-            Button("Open") {
+            .contextMenu {
+                Button("Open") {
+                    onAction(.open, file)
+                }
+                
+                Button("Reveal in Finder") {
+                    onAction(.revealInFinder, file)
+                }
+                
+                Button("Copy Path") {
+                    onAction(.copyPath, file)
+                }
+                
+                Divider()
+                
+                Button("Remove", role: .destructive) {
+                    onAction(.remove, file)
+                }
+            }
+            .onTapGesture(count: 2) {
                 onAction(.open, file)
             }
-            
-            Button("Reveal in Finder") {
-                onAction(.revealInFinder, file)
+            .onAppear {
+                checkFileExists()
             }
-            
-            Button("Copy Path") {
-                onAction(.copyPath, file)
-            }
-            
-            Divider()
-            
-            Button("Remove", role: .destructive) {
-                onAction(.remove, file)
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                checkFileExists()
             }
         }
-        .onTapGesture(count: 2) {
-            onAction(.open, file)
-        }
+    }
+    
+    private func checkFileExists() {
+        fileExists = FileManager.default.fileExists(atPath: file.path.path)
     }
 }
 

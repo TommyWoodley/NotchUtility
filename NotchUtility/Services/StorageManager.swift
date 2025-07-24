@@ -47,6 +47,12 @@ class StorageManager: ObservableObject {
     // MARK: - Public Methods
     
     func addFile(from sourceURL: URL) throws -> FileItem {
+        // Skip hidden files (files starting with a dot)
+        let fileName = sourceURL.lastPathComponent
+        if fileName.hasPrefix(".") {
+            throw StorageError.hiddenFileNotSupported
+        }
+        
         // Check if file already exists by computing its hash
         let sourceFileHash = try computeFileHash(at: sourceURL)
         
@@ -61,7 +67,6 @@ class StorageManager: ObservableObject {
         }
         
         // Create unique filename
-        let fileName = sourceURL.lastPathComponent
         let uniqueFileName = generateUniqueFileName(fileName)
         let destinationURL = tempDirectory.appendingPathComponent(uniqueFileName)
         
@@ -85,7 +90,7 @@ class StorageManager: ObservableObject {
         
         return fileItem
     }
-    
+
     func removeFile(_ fileItem: FileItem) throws {
         // Remove physical file
         if fileManager.fileExists(atPath: fileItem.path.path) {
@@ -97,7 +102,7 @@ class StorageManager: ObservableObject {
         totalStorageUsed -= fileItem.size
         saveStoredFiles()
     }
-    
+
     func removeAllFiles() throws {
         for file in storedFiles {
             if fileManager.fileExists(atPath: file.path.path) {
@@ -109,19 +114,36 @@ class StorageManager: ObservableObject {
         totalStorageUsed = 0
         saveStoredFiles()
     }
-    
+
     func openFile(_ fileItem: FileItem) {
         NSWorkspace.shared.open(fileItem.path)
     }
-    
+
     func revealInFinder(_ fileItem: FileItem) {
         NSWorkspace.shared.selectFile(fileItem.path.path, inFileViewerRootedAtPath: "")
     }
-    
+
     func copyPathToClipboard(_ fileItem: FileItem) {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(fileItem.path.path, forType: NSPasteboard.PasteboardType.string)
+    }
+    
+    func validateAndCleanupFiles() {
+        let invalidFiles = storedFiles.filter { !fileManager.fileExists(atPath: $0.path.path) }
+        
+        for invalidFile in invalidFiles {
+            storedFiles.removeAll { $0.id == invalidFile.id }
+            totalStorageUsed -= invalidFile.size
+        }
+        
+        if !invalidFiles.isEmpty {
+            saveStoredFiles()
+        }
+    }
+    
+    func fileExists(_ fileItem: FileItem) -> Bool {
+        return fileManager.fileExists(atPath: fileItem.path.path)
     }
     
     // MARK: - Configuration
@@ -142,6 +164,12 @@ class StorageManager: ObservableObject {
         }
         
         for fileURL in contents {
+            // Skip hidden files (files starting with a dot)
+            let fileName = fileURL.lastPathComponent
+            if fileName.hasPrefix(".") {
+                continue
+            }
+            
             if let attributes = try? fileManager.attributesOfItem(atPath: fileURL.path),
                let fileSize = attributes[.size] as? Int64,
                let creationDate = attributes[.creationDate] as? Date {
@@ -225,6 +253,7 @@ enum StorageError: LocalizedError {
     case fileNotFound
     case copyFailed
     case duplicateFile(String)
+    case hiddenFileNotSupported
     
     var errorDescription: String? {
         switch self {
@@ -236,6 +265,8 @@ enum StorageError: LocalizedError {
             return "Failed to copy file to storage."
         case .duplicateFile(let fileName):
             return "File '\(fileName)' already exists in storage."
+        case .hiddenFileNotSupported:
+            return "Hidden files (starting with '.') are not supported."
         }
     }
 } 
