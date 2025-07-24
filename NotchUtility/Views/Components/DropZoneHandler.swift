@@ -16,8 +16,7 @@ struct DropZoneHandler: ViewModifier {
     func body(content: Content) -> some View {
         content
             .onDrop(of: [.fileURL], isTargeted: isTargeted) { providers in
-                handleDrop(providers: providers)
-                return true
+                return handleDrop(providers: providers)
             }
     }
     
