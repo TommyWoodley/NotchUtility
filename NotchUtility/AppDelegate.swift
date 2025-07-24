@@ -59,7 +59,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Set up periodic checks to ensure our overlay windows stay active and responsive
         // macOS can sometimes deactivate windows, so we periodically re-assert visibility
         let timer = Timer.scheduledTimer(
-            withTimeInterval: 1,          // Check every second
+            withTimeInterval: 5,          // Check every 5 seconds
             repeats: true
         ) { [weak self] _ in
             Task { @MainActor in
@@ -129,7 +129,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
      * 
      * macOS can sometimes deactivate windows or change window ordering.
      * This function periodically checks if our overlay should be key and visible,
-     * and re-asserts it if needed. Called every second by maintenance timer.
+     * and re-asserts it if needed. Called every 5 seconds by maintenance timer.
      */
     @MainActor func makeKeyAndVisibleIfNeeded() {
         guard let controller = mainWindowController,
