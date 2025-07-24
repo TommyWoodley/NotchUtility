@@ -76,8 +76,6 @@ struct NotchUtilityTests {
         
         #expect(storageManager.storedFiles.isEmpty)
         #expect(storageManager.totalStorageUsed == 0)
-        #expect(storageManager.storageLimit > 0)
-        #expect(storageManager.retentionHours > 0)
     }
     
     @Test("StorageManager add file")
@@ -134,7 +132,8 @@ struct NotchUtilityTests {
     @Test("StorageManager storage limit enforcement")
     func testStorageLimitEnforcement() async throws {
         let storageManager = StorageManager()
-        storageManager.storageLimit = 1 // 1MB limit
+        let originalLimit = storageManager.storageLimit
+        storageManager.storageLimit = 1 // 1MB limit for test
         
         // Create a large temporary test file (2MB)
         let tempDirectory = FileManager.default.temporaryDirectory
@@ -151,6 +150,9 @@ struct NotchUtilityTests {
         #expect(throws: StorageError.self) {
             try storageManager.addFile(from: testFile)
         }
+        
+        // Restore original limit to not affect other tests
+        storageManager.storageLimit = originalLimit
     }
     
     @Test("StorageManager unique filename generation")

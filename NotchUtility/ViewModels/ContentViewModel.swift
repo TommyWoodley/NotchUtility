@@ -79,14 +79,13 @@ class ContentViewModel: ObservableObject {
     }
     
     var storagePercentage: Double {
-        let limitBytes = storageManager.storageLimit * 1024 * 1024
+        let limitBytes: Int64 = 100 * 1024 * 1024 // 100MB in bytes
         return Double(storageManager.totalStorageUsed) / Double(limitBytes)
     }
     
     var formattedStorageUsage: String {
         let usedMB = Double(storageManager.totalStorageUsed) / (1024 * 1024)
-        let limitMB = storageManager.storageLimit
-        return String(format: "%.1f MB / %lld MB", usedMB, limitMB)
+        return String(format: "%.1f MB / 100 MB", usedMB)
     }
     
     // MARK: - Private Methods

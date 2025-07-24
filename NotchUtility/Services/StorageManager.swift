@@ -13,12 +13,11 @@ class StorageManager: ObservableObject {
     @Published var storedFiles: [FileItem] = []
     @Published var totalStorageUsed: Int64 = 0
     
-    // Configuration
-    private let maxStorageSizeMB: Int64 = 100 // 100MB default
-    private let defaultRetentionHours: Int = 24 // 24 hours default
+    // Static Configuration
+    private let storageLimit: Int64 = 100 // 100MB fixed
+    private let retentionHours: Int = 24 // 24 hours fixed
     private let tempDirectoryName = "NotchUtilityTemp"
     
-    private let userDefaults = UserDefaults.standard
     private let fileManager = FileManager.default
     private var cleanupTimer: Timer?
     
@@ -49,7 +48,7 @@ class StorageManager: ObservableObject {
     func addFile(from sourceURL: URL) throws -> FileItem {
         // Check storage limit
         let fileSize = try getFileSize(at: sourceURL)
-        if totalStorageUsed + fileSize > maxStorageSizeMB * 1024 * 1024 {
+        if totalStorageUsed + fileSize > storageLimit * 1024 * 1024 {
             throw StorageError.storageLimitExceeded
         }
         
@@ -118,36 +117,43 @@ class StorageManager: ObservableObject {
     
     // MARK: - Configuration
     
-    var storageLimit: Int64 {
-        get { userDefaults.object(forKey: "storageLimit") as? Int64 ?? maxStorageSizeMB }
-        set { userDefaults.set(newValue, forKey: "storageLimit") }
-    }
-    
-    var retentionHours: Int {
-        get { userDefaults.object(forKey: "retentionHours") as? Int ?? defaultRetentionHours }
-        set { userDefaults.set(newValue, forKey: "retentionHours") }
-    }
+
     
     // MARK: - Private Methods
     
     private func loadStoredFiles() {
-        guard let data = userDefaults.data(forKey: "storedFiles"),
-              let files = try? JSONDecoder().decode([FileItem].self, from: data) else {
+        // For static configuration, we don't persist files between app launches
+        // Files are temporary and will be discovered on startup by scanning the temp directory
+        storedFiles = []
+        
+        // Scan temp directory for existing files
+        let tempDir = tempDirectory
+        guard let contents = try? fileManager.contentsOfDirectory(at: tempDir, includingPropertiesForKeys: [.fileSizeKey, .creationDateKey]) else {
             return
         }
         
-        // Filter out files that no longer exist
-        storedFiles = files.filter { fileManager.fileExists(atPath: $0.path.path) }
-        
-        // Save filtered list
-        if storedFiles.count != files.count {
-            saveStoredFiles()
+        for fileURL in contents {
+            if let attributes = try? fileManager.attributesOfItem(atPath: fileURL.path),
+               let fileSize = attributes[.size] as? Int64,
+               let creationDate = attributes[.creationDate] as? Date {
+                
+                let fileType = FileType.from(fileExtension: fileURL.pathExtension)
+                let fileItem = FileItem(
+                    id: UUID(),
+                    name: fileURL.lastPathComponent,
+                    path: fileURL,
+                    type: fileType,
+                    size: fileSize,
+                    dateAdded: creationDate
+                )
+                storedFiles.append(fileItem)
+            }
         }
     }
     
     private func saveStoredFiles() {
-        guard let data = try? JSONEncoder().encode(storedFiles) else { return }
-        userDefaults.set(data, forKey: "storedFiles")
+        // No persistence needed for static configuration
+        // Files exist in the filesystem, that's our storage
     }
     
     private func calculateStorageUsed() {
