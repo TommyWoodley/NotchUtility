@@ -165,7 +165,7 @@ struct NotchHeaderView: View {
                 Text("NotchUtility")
                     .font(.headline)
                     .foregroundColor(.white)
-                
+//                
                 Text(vm.contentViewModel.formattedStorageUsage)
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -278,7 +278,7 @@ struct NotchContentView: View {
     
     private var compactDropZone: some View {
         DropZoneView(style: .standard, isActive: vm.contentViewModel.isDropTargetActive)
-            .frame(height: 60)
+            .frame(height: 80)
             .clipShape(RoundedRectangle(cornerRadius: 8))
     }
     
@@ -356,7 +356,7 @@ struct NotchContentView: View {
 
 #Preview("NotchOverlayView - Opened") {
     NotchOverlayView(vm: createMockViewModel(status: .opened))
-        .frame(width: 700, height: 300)
+        .frame(width: 700, height: 500)
         .background(Color.blue.opacity(0.3))
 }
 
@@ -387,7 +387,7 @@ private class PreviewNotchViewModel: NotchViewModel {
         
         // Set up mock geometry
         deviceNotchRect = CGRect(x: 0, y: 0, width: 200, height: 30)
-        screenRect = CGRect(x: 0, y: 0, width: 400, height: 200)
+        screenRect = CGRect(x: 0, y: 0, width: 400, height: 250)
         
         // Set the target status using public methods
         switch targetStatus {
