@@ -346,7 +346,120 @@ struct NotchContentView: View {
     }
 }
 
-// CompactFileItemView and CompactClipboardItemView are already defined in NotchView.swift 
+// MARK: - Compact Components
+
+struct CompactFileItemView: View {
+    let file: FileItem
+    let onAction: (FileAction, FileItem) -> Void
+    
+    @State private var isHovered = false
+    @State private var fileExists = true
+    
+    var body: some View {
+        VStack(spacing: 2) {
+            // File thumbnail/icon
+            Group {
+                if let thumbnail = file.thumbnail {
+                    Image(nsImage: thumbnail)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    Image(systemName: file.type.systemIcon)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .frame(width: 24, height: 24)
+            .background(Color(nsColor: .controlBackgroundColor))
+            .cornerRadius(4)
+            
+            // File name (truncated)
+            Text(file.name)
+                .font(.caption2)
+                .lineLimit(1)
+                .foregroundColor(.primary)
+        }
+        .frame(width: 30, height: 30)
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .fill(isHovered ? Color(nsColor: .controlAccentColor).opacity(0.1) : Color.clear)
+        )
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isHovered = hovering
+            }
+        }
+        .contextMenu {
+            Button("Open") { onAction(.open, file) }
+            Button("Reveal in Finder") { onAction(.revealInFinder, file) }
+            Button("Copy Path") { onAction(.copyPath, file) }
+            Divider()
+            Button("Remove", role: .destructive) { onAction(.remove, file) }
+        }
+        .onTapGesture(count: 2) {
+            onAction(.open, file)
+        }
+        .help(file.name)
+    }
+}
+
+struct CompactClipboardItemView: View {
+    let item: ClipboardItem
+    let onTapped: () -> Void
+    let onRemoved: () -> Void
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        HStack(spacing: 6) {
+            // Type icon
+            Image(systemName: item.type.systemIcon)
+                .foregroundColor(.secondary)
+                .font(.caption2)
+                .frame(width: 12)
+            
+            // Content
+            VStack(alignment: .leading, spacing: 1) {
+                Text(item.displayContent)
+                    .font(.caption2)
+                    .lineLimit(1)
+                    .foregroundColor(.primary)
+                
+                Text(item.formattedDate)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer(minLength: 0)
+            
+            // Remove button (only shown on hover)
+            if isHovered {
+                Button(action: onRemoved) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                        .font(.caption2)
+                }
+                .buttonStyle(BorderlessButtonStyle())
+                .transition(.opacity)
+            }
+        }
+        .padding(.vertical, 2)
+        .padding(.horizontal, 4)
+        .background(
+            RoundedRectangle(cornerRadius: 3)
+                .fill(isHovered ? Color(nsColor: .selectedControlColor).opacity(0.3) : Color.clear)
+        )
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHovered = hovering
+            }
+        }
+        .onTapGesture {
+            onTapped()
+        }
+        .help("Click to copy to clipboard")
+    }
+} 
 
 #Preview("NotchOverlayView - Closed") {
     NotchOverlayView(vm: createMockViewModel(status: .closed))
