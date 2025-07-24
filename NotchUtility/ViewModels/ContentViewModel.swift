@@ -12,6 +12,7 @@ import Combine
 @MainActor
 class ContentViewModel: ObservableObject {
     @Published var storageManager = StorageManager()
+    @Published var clipboardService = ClipboardService()
     @Published var isDropTargetActive = false
     @Published var showingError = false
     @Published var errorMessage = ""
@@ -72,6 +73,20 @@ class ContentViewModel: ObservableObject {
         storageManager.validateAndCleanupFiles()
     }
     
+    // MARK: - Clipboard Operations
+    
+    func copyClipboardItem(_ item: ClipboardItem) {
+        clipboardService.copyToClipboard(item)
+    }
+    
+    func removeClipboardItem(_ item: ClipboardItem) {
+        clipboardService.removeItem(item)
+    }
+    
+    func clearClipboardHistory() {
+        clipboardService.clearHistory()
+    }
+    
     // MARK: - UI State Management
     
     func setDropTargetActive(_ active: Bool) {
@@ -103,6 +118,13 @@ class ContentViewModel: ObservableObject {
     private func setupBindings() {
         // Monitor storage manager for changes
         storageManager.objectWillChange
+            .sink { [weak self] in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
+        // Monitor clipboard service for changes
+        clipboardService.objectWillChange
             .sink { [weak self] in
                 self?.objectWillChange.send()
             }

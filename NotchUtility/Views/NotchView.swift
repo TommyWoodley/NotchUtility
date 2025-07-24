@@ -16,6 +16,19 @@ struct NotchView: View {
     @State private var isHovered = false
     @State private var isPermanentlyExpanded = false
     @State private var isDragHovered = false
+    @State private var selectedTab: NotchTab = .files
+    
+    enum NotchTab: String, CaseIterable {
+        case files = "Files"
+        case clipboard = "Clipboard"
+        
+        var icon: String {
+            switch self {
+            case .files: return "doc.on.doc"
+            case .clipboard: return "doc.on.clipboard"
+            }
+        }
+    }
     
     var body: some View {
         VStack(spacing: 0) {
@@ -58,7 +71,95 @@ struct NotchView: View {
             handleDrop(providers: providers)
             return true
         }
-        .frame(width: 250, height: 200, alignment: .top)
+        .frame(width: 280, height: 240, alignment: .top)
+    }
+    
+    private var tabSelector: some View {
+        Picker("Content Type", selection: $selectedTab) {
+            ForEach(NotchTab.allCases, id: \.self) { tab in
+                Image(systemName: tab.icon)
+                    .font(.caption2)
+                    .tag(tab)
+            }
+        }
+        .pickerStyle(.segmented)
+        .animation(.easeInOut(duration: 0.2), value: selectedTab)
+    }
+    
+    private var filesContent: some View {
+        VStack(spacing: 8) {
+            // Drop zone when no files
+            if !viewModel.hasFiles {
+                compactDropZone
+            } else {
+                // Compact file grid with overlay feedback
+                ZStack {
+                    compactFileGrid
+                    
+                    // Drop overlay when active
+                    if viewModel.isDropTargetActive {
+                        DropZoneView(style: .overlay, isActive: true)
+                            .transition(.opacity)
+                    }
+                }
+            }
+            
+            // Quick actions
+            quickActions
+        }
+    }
+    
+    private var clipboardContent: some View {
+        VStack(spacing: 8) {
+            if viewModel.clipboardService.clipboardHistory.isEmpty {
+                // Empty state
+                VStack(spacing: 8) {
+                    Image(systemName: "doc.on.clipboard")
+                        .font(.title2)
+                        .foregroundColor(.secondary)
+                    
+                    Text("No clipboard history")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text("Copy some text to see it here")
+                        .font(.caption2)
+                        .foregroundColor(Color(NSColor.tertiaryLabelColor))
+                }
+                .frame(height: 80)
+            } else {
+                // Clipboard items
+                ScrollView {
+                    LazyVStack(spacing: 4) {
+                        ForEach(viewModel.clipboardService.clipboardHistory) { item in
+                            CompactClipboardItemView(
+                                item: item,
+                                onTapped: { viewModel.copyClipboardItem(item) },
+                                onRemoved: { viewModel.removeClipboardItem(item) }
+                            )
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
+                .frame(maxHeight: 120)
+                
+                // Clipboard actions
+                HStack {
+                    Button(action: viewModel.clearClipboardHistory) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "trash")
+                                .font(.caption)
+                            Text("Clear All")
+                                .font(.caption2)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.red)
+                    
+                    Spacer()
+                }
+            }
+        }
     }
     
     private var notchBar: some View {
@@ -71,6 +172,11 @@ struct NotchView: View {
             // File count badge
             if viewModel.hasFiles {
                 fileCountBadge
+            }
+            
+            // Clipboard indicator
+            if !viewModel.clipboardService.clipboardHistory.isEmpty {
+                clipboardBadge
             }
             
             // Expand/collapse indicator
@@ -126,6 +232,22 @@ struct NotchView: View {
         .clipShape(Capsule())
     }
     
+    private var clipboardBadge: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "doc.on.clipboard")
+                .font(.caption2)
+            
+            Text("\(viewModel.clipboardService.clipboardHistory.count)")
+                .font(.caption2)
+                .fontWeight(.medium)
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 2)
+        .background(Color.green.opacity(0.8))
+        .foregroundColor(.white)
+        .clipShape(Capsule())
+    }
+    
     private var expandIndicator: some View {
         let isCurrentlyExpanded = isExpanded || isPermanentlyExpanded || isDragHovered
         return Image(systemName: isCurrentlyExpanded ? "chevron.up" : "chevron.down")
@@ -135,25 +257,17 @@ struct NotchView: View {
     }
     
     private var expandedContent: some View {
-        VStack(spacing: 12) {
-            // Drop zone when no files
-            if !viewModel.hasFiles {
-                compactDropZone
-            } else {
-                // Compact file grid with overlay feedback
-                ZStack {
-                    compactFileGrid
-                    
-                    // Drop overlay when active
-                    if viewModel.isDropTargetActive {
-                        DropZoneView(style: .overlay, isActive: true)
-                            .transition(.opacity)
-                    }
-                }
-            }
+        VStack(spacing: 8) {
+            // Tab selector
+            tabSelector
             
-            // Quick actions
-            quickActions
+            // Content based on selected tab
+            switch selectedTab {
+            case .files:
+                filesContent
+            case .clipboard:
+                clipboardContent
+            }
         }
         .padding(12)
         .dropZone(
@@ -318,8 +432,68 @@ struct CompactFileItemView: View {
     }
 }
 
+// MARK: - CompactClipboardItemView
+
+struct CompactClipboardItemView: View {
+    let item: ClipboardItem
+    let onTapped: () -> Void
+    let onRemoved: () -> Void
+    
+    @State private var isHovered = false
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            // Type icon
+            Image(systemName: item.type.systemIcon)
+                .foregroundColor(.secondary)
+                .frame(width: 16, height: 16)
+                .font(.caption)
+            
+            // Content
+            VStack(alignment: .leading, spacing: 2) {
+                Text(item.displayContent)
+                    .font(.caption)
+                    .lineLimit(1)
+                    .foregroundColor(.primary)
+                
+                Text(item.formattedDate)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            // Remove button (only shown on hover)
+            if isHovered {
+                Button(action: onRemoved) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.secondary)
+                        .font(.caption)
+                }
+                .buttonStyle(BorderlessButtonStyle())
+                .transition(.opacity)
+            }
+        }
+        .padding(.vertical, 4)
+        .padding(.horizontal, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 4)
+                .fill(isHovered ? Color(NSColor.selectedControlColor).opacity(0.3) : Color.clear)
+        )
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                isHovered = hovering
+            }
+        }
+        .onTapGesture {
+            onTapped()
+        }
+        .help("Click to copy to clipboard: \(item.content)")
+    }
+}
+
 #Preview {
     NotchView()
-        .frame(width: 320, height: 200, alignment: .top)
+        .frame(width: 320, height: 280, alignment: .top)
         .background(Color.black.opacity(0.1))
 }
