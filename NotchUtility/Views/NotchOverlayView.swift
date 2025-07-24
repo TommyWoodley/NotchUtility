@@ -347,3 +347,44 @@ struct NotchContentView: View {
 }
 
 // CompactFileItemView and CompactClipboardItemView are already defined in NotchView.swift 
+
+#Preview("NotchOverlayView - Closed") {
+    NotchOverlayView(vm: createMockViewModel(status: .closed))
+        .frame(width: 400, height: 200)
+        .background(Color.blue.opacity(0.3)) // Background to visualize the notch
+}
+
+#Preview("NotchOverlayView - Opened") {
+    NotchOverlayView(vm: createMockViewModel(status: .opened))
+        .frame(width: 700, height: 300)
+        .background(Color.blue.opacity(0.3))
+}
+
+#Preview("NotchOverlayView - Popping") {
+    NotchOverlayView(vm: createMockViewModel(status: .popping))
+        .frame(width: 400, height: 200)
+        .background(Color.blue.opacity(0.3))
+}
+
+// MARK: - Preview Helper Functions
+
+@MainActor
+private func createMockViewModel(status: NotchViewModel.Status) -> NotchViewModel {
+    let vm = NotchViewModel(inset: -4)
+    
+    // Set up mock geometry
+    vm.deviceNotchRect = CGRect(x: 0, y: 0, width: 200, height: 30)
+    vm.screenRect = CGRect(x: 0, y: 0, width: 400, height: 200)
+    
+    // Set the status after a brief delay to simulate real behavior
+    switch status {
+    case .closed:
+        vm.notchClose()
+    case .opened:
+        vm.notchOpen(.click)
+    case .popping:
+        vm.notchPop()
+    }
+    
+    return vm
+} 
