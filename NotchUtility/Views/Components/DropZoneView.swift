@@ -25,19 +25,10 @@ struct DropZoneView: View {
                         .fill(isActive ? Color.accentColor.opacity(0.1) : Color.clear)
                 )
             
-            VStack(spacing: 12) {
+            VStack(spacing: 5) {
                 Image(systemName: isActive ? "arrow.down.circle.fill" : "plus.circle")
                     .font(.system(size: 32))
                     .foregroundColor(isActive ? .accentColor : .secondary)
-                
-                Text(isActive ? "Drop files here" : "Drag files here")
-                    .font(.headline)
-                    .foregroundColor(isActive ? .accentColor : .secondary)
-                
-                Text("Supported: Documents, Images, Archives, Code files")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
             }
             .padding()
         }
@@ -83,6 +74,20 @@ struct DropZoneView: View {
         
         return !providers.isEmpty
     }
+}
+
+#Preview("Very Small Height") {
+    DropZoneView(
+        isActive: false,
+        onFilesDropped: { urls in
+            print("Files dropped: \(urls)")
+        },
+        onDropStateChanged: { isActive in
+            print("Drop state changed: \(isActive)")
+        }
+    )
+    .frame(width: 200, height: 70)
+    .padding()
 }
 
 #Preview("Small Square") {
