@@ -9,70 +9,14 @@ import SwiftUI
 
 @main
 struct NotchUtilityApp: App {
-    @StateObject private var windowManager = WindowManager()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     var body: some Scene {
-        WindowGroup {
-            NotchAppView()
-                .environmentObject(windowManager)
+        // We need to keep a Scene for app lifecycle, but it won't show
+        // The actual UI is managed by the AppDelegate through NotchWindowController
+        Settings {
+            EmptyView()
         }
-        .windowStyle(.plain)
-        .windowResizability(.contentSize)
-    }
-}
-
-struct NotchAppView: View {
-    @EnvironmentObject var windowManager: WindowManager
-    @State private var windowConfigured = false
-    
-    var body: some View {
-        NotchView()
-            .background(WindowConfiguratorView())
-            .onAppear {
-                if !windowConfigured {
-                    configureWindow()
-                    windowConfigured = true
-                }
-            }
-    }
-    
-    private func configureWindow() {
-        DispatchQueue.main.async {
-            if let window = NSApplication.shared.windows.first {
-                windowManager.configureForNotchMode(window)
-            }
-        }
-    }
-}
-
-
-
-struct WindowConfiguratorView: NSViewRepresentable {
-    @EnvironmentObject var windowManager: WindowManager
-    
-    func makeNSView(context: Context) -> NSView {
-        let view = NSView()
-        
-        DispatchQueue.main.async {
-            if let window = view.window {
-                windowManager.configureForNotchMode(window)
-                
-                // Setup display change notifications
-                NotificationCenter.default.addObserver(
-                    forName: NSApplication.didChangeScreenParametersNotification,
-                    object: nil,
-                    queue: .main
-                ) { _ in
-                    windowManager.handleDisplayChange()
-                }
-            }
-        }
-        
-        return view
-    }
-    
-    func updateNSView(_ nsView: NSView, context: Context) {
-        // No updates needed
     }
 }
 

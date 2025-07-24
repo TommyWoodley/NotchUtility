@@ -32,12 +32,42 @@ struct NotchView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Compact notch bar
+            // Compact notch bar with hover detection
             notchBar
+                .onHover { hovering in
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isHovered = hovering
+                        // Only expand on hover if not permanently expanded
+                        if !isPermanentlyExpanded {
+                            isExpanded = hovering
+                        }
+                    }
+                }
+                .onTapGesture {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        isPermanentlyExpanded.toggle()
+                        // If we're toggling to permanently expanded, make sure isExpanded is false
+                        // so hover state doesn't interfere
+                        if isPermanentlyExpanded {
+                            isExpanded = false
+                        }
+                    }
+                }
             
-            // Expandable content area
+            // Expandable content area with separate hover detection
             if isExpanded || isPermanentlyExpanded || isDragHovered {
                 expandedContent
+                    .onHover { hovering in
+                        // Keep expanded while hovering over content, but only if opened by hover
+                        if !isPermanentlyExpanded {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                if !hovering {
+                                    isExpanded = false
+                                    isHovered = false
+                                }
+                            }
+                        }
+                    }
                     .transition(.asymmetric(
                         insertion: .move(edge: .top).combined(with: .opacity),
                         removal: .move(edge: .top).combined(with: .opacity)
@@ -48,25 +78,6 @@ struct NotchView: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(.ultraThinMaterial)
         )
-        .onHover { hovering in
-            withAnimation(.easeInOut(duration: 0.2)) {
-                isHovered = hovering
-                // Only expand on hover if not permanently expanded
-                if !isPermanentlyExpanded {
-                    isExpanded = hovering
-                }
-            }
-        }
-        .onTapGesture {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                isPermanentlyExpanded.toggle()
-                // If we're toggling to permanently expanded, make sure isExpanded is false
-                // so hover state doesn't interfere
-                if isPermanentlyExpanded {
-                    isExpanded = false
-                }
-            }
-        }
         .onDrop(of: [.fileURL], isTargeted: $isDragHovered) { providers in
             handleDrop(providers: providers)
             return true
