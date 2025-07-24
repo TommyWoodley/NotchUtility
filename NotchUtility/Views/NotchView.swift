@@ -7,21 +7,46 @@
 
 import SwiftUI
 
+/**
+ * NotchView: Legacy SwiftUI interface for NotchUtility (currently not used in notch overlay)
+ * 
+ * NOTE: This is the original SwiftUI view for NotchUtility before we implemented the 
+ * real notch integration. The actual notch interface now uses NotchOverlayView.swift
+ * which is displayed in the transparent overlay window system.
+ * 
+ * This view demonstrates the file management UI components but operates as a regular
+ * window rather than a notch overlay. It's preserved for reference and could be used
+ * for a windowed mode or preferences interface.
+ * 
+ * Key differences from NotchOverlayView:
+ * - Uses local hover state instead of global mouse monitoring  
+ * - Operates as a normal window instead of transparent overlay
+ * - Simpler interaction model without the sophisticated notch behavior
+ */
 struct NotchView: View {
-    @StateObject private var viewModel = ContentViewModel()
-    @EnvironmentObject var windowManager: WindowManager
-    @StateObject private var notchDetector = NotchDetector()
+    // === VIEW MODELS ===
+    @StateObject private var viewModel = ContentViewModel()     // File management functionality
+    @EnvironmentObject var windowManager: WindowManager         // Window positioning (legacy)
+    @StateObject private var notchDetector = NotchDetector()   // Basic notch detection (legacy)
     
-    @State private var isExpanded = false
-    @State private var isHovered = false
-    @State private var isPermanentlyExpanded = false
-    @State private var isDragHovered = false
-    @State private var selectedTab: NotchTab = .files
+    // === LOCAL UI STATE ===
+    // These manage the interface expansion without global event coordination
+    @State private var isExpanded = false                      // Whether interface is currently expanded
+    @State private var isHovered = false                       // Whether mouse is hovering over interface
+    @State private var isPermanentlyExpanded = false           // Whether user has "pinned" interface open
+    @State private var isDragHovered = false                   // Whether files are being dragged over interface
+    @State private var selectedTab: NotchTab = .files          // Currently selected tab (files vs clipboard)
     
+    // === TAB SYSTEM ===
+    /**
+     * Tab enumeration for switching between different interface modes
+     * This allows users to access both file management and clipboard features
+     */
     enum NotchTab: String, CaseIterable {
-        case files = "Files"
-        case clipboard = "Clipboard"
+        case files = "Files"           // File storage and management tab
+        case clipboard = "Clipboard"   // Clipboard history tab
         
+        /// SF Symbol icon for each tab
         var icon: String {
             switch self {
             case .files: return "doc.on.doc"
@@ -32,12 +57,13 @@ struct NotchView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            // Compact notch bar with hover detection
+            // === COMPACT NOTCH BAR ===
+            // This is the minimal interface that's always visible
             notchBar
                 .onHover { hovering in
                     withAnimation(.easeInOut(duration: 0.2)) {
                         isHovered = hovering
-                        // Only expand on hover if not permanently expanded
+                        // HOVER TO EXPAND: Only expand on hover if not permanently pinned
                         if !isPermanentlyExpanded {
                             isExpanded = hovering
                         }
@@ -45,20 +71,21 @@ struct NotchView: View {
                 }
                 .onTapGesture {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        // CLICK TO PIN: Toggle permanent expansion state
                         isPermanentlyExpanded.toggle()
-                        // If we're toggling to permanently expanded, make sure isExpanded is false
-                        // so hover state doesn't interfere
+                        // Clear hover expansion when pinning to avoid state conflicts
                         if isPermanentlyExpanded {
                             isExpanded = false
                         }
                     }
                 }
             
-            // Expandable content area with separate hover detection
+            // === EXPANDABLE CONTENT AREA ===
+            // Shows when interface is expanded via hover, click, or drag
             if isExpanded || isPermanentlyExpanded || isDragHovered {
                 expandedContent
                     .onHover { hovering in
-                        // Keep expanded while hovering over content, but only if opened by hover
+                        // HOVER TO CLOSE: Keep expanded while over content, close when leaving
                         if !isPermanentlyExpanded {
                             withAnimation(.easeInOut(duration: 0.2)) {
                                 if !hovering {
@@ -76,13 +103,13 @@ struct NotchView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(.ultraThinMaterial)
+                .fill(.ultraThinMaterial)  // Translucent material for modern macOS look
         )
         .onDrop(of: [.fileURL], isTargeted: $isDragHovered) { providers in
             handleDrop(providers: providers)
             return true
         }
-        .frame(width: 280, height: 240, alignment: .top)
+        .frame(width: 280, height: 240, alignment: .top)  // Fixed size for predictable layout
     }
     
     private var tabSelector: some View {
