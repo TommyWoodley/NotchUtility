@@ -27,7 +27,6 @@ import Cocoa
  */
 class AppDelegate: NSObject, NSApplicationDelegate {
     // === STATE TRACKING ===
-    var isFirstOpen = true                              // Whether this is the first time opening (for auto-open behavior)
     var mainWindowController: NotchWindowController?    // The primary notch overlay controller
     var timer: Timer?                                   // Periodic maintenance timer
 
@@ -112,8 +111,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
      * The method ensures we always have the correct overlay window for the current setup
      */
     @objc func rebuildApplicationWindows() {
-        defer { isFirstOpen = false }  // Mark that we've completed first initialization
-        
         // === CLEANUP EXISTING OVERLAY ===
         // Destroy any existing overlay window and free its resources
         if let mainWindowController {
@@ -125,12 +122,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Build new overlay window for the current optimal screen
         guard let mainScreen = findScreenFitsOurNeeds() else { return }
         mainWindowController = .init(screen: mainScreen)
-        
-        // === FIRST LAUNCH BEHAVIOR ===
-        // Automatically open interface on first app launch for user onboarding
-        if isFirstOpen {
-            mainWindowController?.openAfterCreate = true
-        }
     }
 
     /**

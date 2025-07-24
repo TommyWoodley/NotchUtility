@@ -32,8 +32,7 @@ class NotchWindowController: NSWindowController {
     var vm: NotchViewModel?              // State management for notch behavior (open/closed/hover)
     weak var screen: NSScreen?           // Reference to the screen this notch overlay is on
     
-    // === CONFIGURATION ===
-    var openAfterCreate: Bool = false    // Whether to automatically open the notch after setup
+
 
     /**
      * Primary initializer: Sets up the notch overlay for a specific screen
@@ -82,7 +81,6 @@ class NotchWindowController: NSWindowController {
         // Small delay ensures window is fully set up before we start event handling
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak vm] in
             vm?.screenRect = screen.frame           // Set screen bounds for coordinate calculations
-            if self.openAfterCreate { vm?.notchOpen(.boot) }  // Auto-open if requested
         }
     }
 
