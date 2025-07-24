@@ -43,7 +43,7 @@ struct NotchView: View {
                 isExpanded.toggle()
             }
         }
-        .frame(width: notchWidth, height: notchHeight)
+        .frame(width: notchWidth, height: notchHeight, alignment: .top)
     }
     
     private var notchBar: some View {
