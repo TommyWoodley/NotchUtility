@@ -237,23 +237,7 @@ struct NotchView: View {
     }
     
     private func handleDrop(providers: [NSItemProvider]) {
-        let group = DispatchGroup()
-        var urls: [URL] = []
-        
-        for provider in providers {
-            if provider.canLoadObject(ofClass: URL.self) {
-                group.enter()
-                provider.loadObject(ofClass: URL.self) { url, error in
-                    defer { group.leave() }
-                    
-                    if let url = url, url.isFileURL {
-                        urls.append(url)
-                    }
-                }
-            }
-        }
-        
-        group.notify(queue: .main) {
+        DropUtility.extractURLs(from: providers) { urls in
             if !urls.isEmpty {
                 viewModel.handleFilesDrop(urls)
             }
