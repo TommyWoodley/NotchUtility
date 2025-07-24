@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A8D19A3A2E325A1F0059DF4B /* ideas.md in Resources */ = {isa = PBXBuildFile; fileRef = A8D19A392E325A1F0059DF4B /* ideas.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		A8961DD32E32275B008833D5 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		A8961DC42E322759008833D5 /* NotchUtility.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NotchUtility.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8961DD22E32275B008833D5 /* NotchUtilityTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NotchUtilityTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8961DDC2E32275B008833D5 /* NotchUtilityUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NotchUtilityUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A8D19A392E325A1F0059DF4B /* ideas.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ideas.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +80,7 @@
 		A8961DBB2E322759008833D5 = {
 			isa = PBXGroup;
 			children = (
+				A8D19A392E325A1F0059DF4B /* ideas.md */,
 				A8961DC62E322759008833D5 /* NotchUtility */,
 				A8961DD52E32275B008833D5 /* NotchUtilityTests */,
 				A8961DDF2E32275B008833D5 /* NotchUtilityUITests */,
@@ -212,6 +218,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A8D19A3A2E325A1F0059DF4B /* ideas.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
