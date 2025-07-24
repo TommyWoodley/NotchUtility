@@ -14,6 +14,7 @@ struct NotchView: View {
     
     @State private var isExpanded = false
     @State private var isHovered = false
+    @State private var isPermanentlyExpanded = false
     
     var body: some View {
         VStack(spacing: 0) {
@@ -21,7 +22,7 @@ struct NotchView: View {
             notchBar
             
             // Expandable content area
-            if isExpanded {
+            if isExpanded || isPermanentlyExpanded {
                 expandedContent
                     .transition(.asymmetric(
                         insertion: .move(edge: .top).combined(with: .opacity),
@@ -36,11 +37,20 @@ struct NotchView: View {
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.2)) {
                 isHovered = hovering
+                // Only expand on hover if not permanently expanded
+                if !isPermanentlyExpanded {
+                    isExpanded = hovering
+                }
             }
         }
         .onTapGesture {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                isExpanded.toggle()
+                isPermanentlyExpanded.toggle()
+                // If we're toggling to permanently expanded, make sure isExpanded is false
+                // so hover state doesn't interfere
+                if isPermanentlyExpanded {
+                    isExpanded = false
+                }
             }
         }
         .frame(width: 250, height: 200, alignment: .top)
@@ -112,10 +122,10 @@ struct NotchView: View {
     }
     
     private var expandIndicator: some View {
-        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+        Image(systemName: (isExpanded || isPermanentlyExpanded) ? "chevron.up" : "chevron.down")
             .font(.caption2)
-            .foregroundColor(.secondary)
-            .rotationEffect(.degrees(isExpanded ? 180 : 0))
+            .foregroundColor(isPermanentlyExpanded ? .accentColor : .secondary)
+            .rotationEffect(.degrees((isExpanded || isPermanentlyExpanded) ? 180 : 0))
     }
     
     private var expandedContent: some View {
