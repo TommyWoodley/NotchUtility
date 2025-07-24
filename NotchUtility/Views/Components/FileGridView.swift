@@ -12,7 +12,7 @@ struct FileGridView: View {
     let onFileAction: (FileAction, FileItem) -> Void
     
     private let columns = [
-        GridItem(.adaptive(minimum: 80, maximum: 120), spacing: 12)
+        GridItem(.adaptive(minimum: 100, maximum: 120), spacing: 12)
     ]
     
     var body: some View {
@@ -63,7 +63,7 @@ struct FileItemView: View {
                 .font(.caption2)
                 .foregroundColor(.secondary)
         }
-        .frame(width: 80, height: 100)
+        .frame(width: 120, height: 150)
         .background(
             RoundedRectangle(cornerRadius: 8)
                 .fill(isHovered ? Color(nsColor: .controlAccentColor).opacity(0.1) : Color.clear)
@@ -107,7 +107,7 @@ enum FileAction {
 
 #Preview {
     FileGridView(files: [
-        FileItem(name: "Test.pdf", path: URL(fileURLWithPath: "/tmp/test.pdf"), type: .document, size: 1024),
+        FileItem(name: "DocumentWithManyImages.pdf", path: URL(fileURLWithPath: "/tmp/DocumentWithManyImages.pdf"), type: .document, size: 1024),
         FileItem(name: "Image.png", path: URL(fileURLWithPath: "/tmp/image.png"), type: .image, size: 2048),
         FileItem(name: "Code.swift", path: URL(fileURLWithPath: "/tmp/code.swift"), type: .code, size: 512)
     ]) { action, file in
