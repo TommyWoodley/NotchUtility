@@ -35,7 +35,7 @@ struct CompactFileItemView: View {
                         .foregroundColor(.secondary)
                 }
             }
-            .frame(width: 24, height: 24)
+            .frame(width: 50, height: 50)
             .background(Color(nsColor: .controlBackgroundColor))
             .cornerRadius(4)
             
@@ -45,7 +45,7 @@ struct CompactFileItemView: View {
                 .lineLimit(1)
                 .foregroundColor(.primary)
         }
-        .frame(width: 30, height: 30)
+        .frame(width: 50, height: 70)
         .background(
             RoundedRectangle(cornerRadius: 4)
                 .fill(isHovered ? Color(nsColor: .controlAccentColor).opacity(0.1) : Color.clear)

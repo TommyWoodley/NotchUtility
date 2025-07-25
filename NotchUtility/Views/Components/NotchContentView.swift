@@ -88,7 +88,7 @@ struct NotchContentView: View {
     private var compactFileGrid: some View {
         ScrollView {
             LazyVGrid(columns: [
-                GridItem(.adaptive(minimum: 30, maximum: 40), spacing: 6)
+                GridItem(.adaptive(minimum: 60, maximum: 70), spacing: 6)
             ], spacing: 6) {
                 ForEach(vm.contentViewModel.storageManager.storedFiles.prefix(8)) { file in
                     CompactFileItemView(file: file) { action, file in
