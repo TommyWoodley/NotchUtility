@@ -60,17 +60,16 @@ jobs:
             ONLY_ACTIVE_ARCH=NO \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
             
-  #     - name: Run tests
-  #       run: |
-  #         xcodebuild test-without-building \
-  #           -project NotchUtility.xcodeproj \
-  #           -scheme NotchUtility \
-  #           -destination '${{ matrix.destination }}' \
-  #           CODE_SIGN_IDENTITY="" \
-  #           CODE_SIGNING_REQUIRED=NO \
-  #           ONLY_ACTIVE_ARCH=NO \
-  #           SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
-  #           -resultBundlePath TestResults.xcresult
+      - name: Run tests
+        run: |
+          xcodebuild test \
+            -project NotchUtility.xcodeproj \
+            -scheme NotchUtility \
+            -destination 'platform=macOS,arch=arm64' \
+            -only-testing:NotchUtilityTests \
+            ONLY_ACTIVE_ARCH=NO \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+            -resultBundlePath TestResults.xcresult
         
   #     - name: Upload test results
   #       if: failure()
