@@ -60,8 +60,8 @@ disabled_rules:
   - todo
   - line_length # We'll set a custom length below
   - trailing_whitespace
-  - trailing_newline
   - vertical_whitespace
+  - trailing_newline
 
 # Rule configurations
 line_length:
