@@ -27,13 +27,7 @@ jobs:
     runs-on: macos-15
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
-        
-      - name: Debug directory structure
-        run: |
-          pwd
-          ls -la
-          find . -name "*.xcodeproj" -type d
+        uses: actions/checkout
           
       - name: Install SwiftLint
         run: |
