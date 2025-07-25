@@ -11,13 +11,8 @@
 
 ## ✅ Checklist
 
-### Code Quality
-- [ ] Code follows the project's style guidelines
+### Code Quality / Testing
 - [ ] SwiftLint passes without warnings
-- [ ] No force unwrapping unless absolutely necessary
-- [ ] Proper error handling is implemented
-
-### Testing
 - [ ] Unit tests pass
 - [ ] UI tests pass (if applicable)
 - [ ] New functionality includes appropriate tests
@@ -25,14 +20,7 @@
 
 ### Documentation
 - [ ] Code is properly documented with comments where needed
-- [ ] README updated if new features are added
-- [ ] CHANGELOG updated (if applicable)
-
-### Functionality
-- [ ] Changes work on both Intel and Apple Silicon Macs
-- [ ] No breaking changes to existing functionality
-- [ ] App builds and runs successfully
-- [ ] No memory leaks or performance issues
+- [ ] README updated if new major features are added
 
 ## 📱 Screenshots/Videos
 <!-- If this PR includes UI changes, please include screenshots or videos -->
