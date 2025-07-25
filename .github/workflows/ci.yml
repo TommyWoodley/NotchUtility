@@ -53,7 +53,7 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4.2.2
+        uses: actions/checkout@v4
         
       - name: Debug directory structure
         run: |
@@ -61,18 +61,6 @@ jobs:
           ls -la
           find . -name "*.xcodeproj" -type d
         
-      - name: Setup Xcode
-        uses: maxim-lobanov/setup-xcode@v2
-        with:
-          xcode-version: '16.2'
-          
-      - name: Cache derived data
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-derived-data-${{ hashFiles('**/*.xcodeproj') }}
-          restore-keys: |
-            ${{ runner.os }}-derived-data-
             
       - name: Build for testing
         run: |
