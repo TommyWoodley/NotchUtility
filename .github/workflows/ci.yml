@@ -64,7 +64,7 @@ jobs:
             
       - name: Build for testing
         run: |
-          xcodebuild clean build-for-testing \
+          xcodebuild clean build \
             -project NotchUtility.xcodeproj \
             -scheme NotchUtility \
             -destination '${{ matrix.destination }}' \
