@@ -12,13 +12,15 @@ struct DropUtility {
         let group = DispatchGroup()
         var urls: [URL] = []
         
-        for provider in providers where provider.canLoadObject(ofClass: URL.self) {
-            group.enter()
-            provider.loadObject(ofClass: URL.self) { url, _ in
-                defer { group.leave() }
-                
-                if let url = url, url.isFileURL {
-                    urls.append(url)
+        for provider in providers {
+            if provider.canLoadObject(ofClass: URL.self) {
+                group.enter()
+                _ = provider.loadObject(ofClass: URL.self) { url, error in
+                    defer { group.leave() }
+                    
+                    if let url = url, url.isFileURL {
+                        urls.append(url)
+                    }
                 }
             }
         }
