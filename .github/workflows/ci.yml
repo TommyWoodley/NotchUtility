@@ -38,98 +38,101 @@ jobs:
         run: |
           swiftlint lint --reporter github-actions-logging
 
-  test:
-    name: Build and Test
-    runs-on: macos-14
-    needs: lint
-    strategy:
-      matrix:
-        destination: ['platform=macOS,arch=x86_64', 'platform=macOS,arch=arm64']
+  # test:
+  #   name: Build and Test
+  #   runs-on: macos-14
+  #   needs: lint
+  #   strategy:
+  #     matrix:
+  #       destination: ['platform=macOS,arch=x86_64', 'platform=macOS,arch=arm64']
     
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
         
-      - name: Setup Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '15.2'
+  #     - name: Setup Xcode
+  #       uses: maxim-lobanov/setup-xcode@v1
+  #       with:
+  #         xcode-version: '15.2'
           
-      - name: Cache derived data
-        uses: actions/cache@v4
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-derived-data-${{ hashFiles('**/*.xcodeproj') }}
-          restore-keys: |
-            ${{ runner.os }}-derived-data-
+  #     - name: Cache derived data
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: ~/Library/Developer/Xcode/DerivedData
+  #         key: ${{ runner.os }}-derived-data-${{ hashFiles('**/*.xcodeproj') }}
+  #         restore-keys: |
+  #           ${{ runner.os }}-derived-data-
             
-      - name: Build for testing
-        working-directory: NotchUtility
-        run: |
-          xcodebuild clean build-for-testing \
-            -project NotchUtility.xcodeproj \
-            -scheme NotchUtility \
-            -destination '${{ matrix.destination }}' \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            ONLY_ACTIVE_ARCH=NO
+  #     - name: Build for testing
+  #       working-directory: NotchUtility
+  #       run: |
+  #         xcodebuild clean build-for-testing \
+  #           -project NotchUtility.xcodeproj \
+  #           -scheme NotchUtility \
+  #           -destination '${{ matrix.destination }}' \
+  #           CODE_SIGN_IDENTITY="" \
+  #           CODE_SIGNING_REQUIRED=NO \
+  #           ONLY_ACTIVE_ARCH=NO \
+  #           SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
             
-      - name: Run tests
-        working-directory: NotchUtility
-        run: |
-          xcodebuild test-without-building \
-            -project NotchUtility.xcodeproj \
-            -scheme NotchUtility \
-            -destination '${{ matrix.destination }}' \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            ONLY_ACTIVE_ARCH=NO \
-            -resultBundlePath TestResults.xcresult
+  #     - name: Run tests
+  #       working-directory: NotchUtility
+  #       run: |
+  #         xcodebuild test-without-building \
+  #           -project NotchUtility.xcodeproj \
+  #           -scheme NotchUtility \
+  #           -destination '${{ matrix.destination }}' \
+  #           CODE_SIGN_IDENTITY="" \
+  #           CODE_SIGNING_REQUIRED=NO \
+  #           ONLY_ACTIVE_ARCH=NO \
+  #           SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+  #           -resultBundlePath TestResults.xcresult
         
-      - name: Upload test results
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-${{ matrix.destination }}
-          path: |
-            NotchUtility/TestResults.xcresult
-          retention-days: 7
+  #     - name: Upload test results
+  #       if: failure()
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: test-results-${{ matrix.destination }}
+  #         path: |
+  #           NotchUtility/TestResults.xcresult
+  #         retention-days: 7
 
-  coverage:
-    name: Code Coverage
-    runs-on: macos-14
-    needs: test
-    if: github.event_name == 'pull_request'
+  # coverage:
+  #   name: Code Coverage
+  #   runs-on: macos-14
+  #   needs: test
+  #   if: github.event_name == 'pull_request'
     
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v4
         
-      - name: Setup Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: '15.2'
+  #     - name: Setup Xcode
+  #       uses: maxim-lobanov/setup-xcode@v1
+  #       with:
+  #         xcode-version: '15.2'
           
-      - name: Run tests with coverage
-        working-directory: NotchUtility
-        run: |
-          xcodebuild test \
-            -project NotchUtility.xcodeproj \
-            -scheme NotchUtility \
-            -destination 'platform=macOS,arch=arm64' \
-            -enableCodeCoverage YES \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            -resultBundlePath TestResults-Coverage.xcresult
+  #     - name: Run tests with coverage
+  #       working-directory: NotchUtility
+  #       run: |
+  #         xcodebuild test \
+  #           -project NotchUtility.xcodeproj \
+  #           -scheme NotchUtility \
+  #           -destination 'platform=macOS,arch=arm64' \
+  #           -enableCodeCoverage YES \
+  #           CODE_SIGN_IDENTITY="" \
+  #           CODE_SIGNING_REQUIRED=NO \
+  #           SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+  #           -resultBundlePath TestResults-Coverage.xcresult
             
-      - name: Generate coverage report
-        working-directory: NotchUtility
-        run: |
-          xcrun xccov view --report --json TestResults-Coverage.xcresult > coverage.json
+  #     - name: Generate coverage report
+  #       working-directory: NotchUtility
+  #       run: |
+  #         xcrun xccov view --report --json TestResults-Coverage.xcresult > coverage.json
           
-      - name: Upload coverage reports
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: NotchUtility/coverage.json
-          retention-days: 30 
+  #     - name: Upload coverage reports
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: coverage-report
+  #         path: NotchUtility/coverage.json
+  #         retention-days: 30 

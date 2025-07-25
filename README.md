@@ -128,8 +128,8 @@ brew install swiftlint
 # Run linting
 swiftlint lint
 
-# Run tests
-xcodebuild test -project NotchUtility.xcodeproj -scheme NotchUtility
+# Run tests (treating warnings as errors)
+xcodebuild test -project NotchUtility.xcodeproj -scheme NotchUtility SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
 ```
 
 ## 🗺 Roadmap
