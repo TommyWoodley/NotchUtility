@@ -39,7 +39,7 @@ jobs:
 
   test:
     name: Build and Test
-    runs-on: macos-14
+    runs-on: macos-15
     needs: lint
     strategy:
       matrix:
@@ -49,7 +49,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
             
-      - name: Build for testing
+      - name: Build
         run: |
           xcodebuild clean build \
             -project NotchUtility.xcodeproj \
@@ -60,17 +60,16 @@ jobs:
             ONLY_ACTIVE_ARCH=NO \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
             
-  #     - name: Run tests
-  #       run: |
-  #         xcodebuild test-without-building \
-  #           -project NotchUtility.xcodeproj \
-  #           -scheme NotchUtility \
-  #           -destination '${{ matrix.destination }}' \
-  #           CODE_SIGN_IDENTITY="" \
-  #           CODE_SIGNING_REQUIRED=NO \
-  #           ONLY_ACTIVE_ARCH=NO \
-  #           SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
-  #           -resultBundlePath TestResults.xcresult
+      - name: Run tests
+        run: |
+          xcodebuild test \
+            -project NotchUtility.xcodeproj \
+            -scheme NotchUtility \
+            -destination '${{ matrix.destination }}' \
+            -only-testing:NotchUtilityTests \
+            ONLY_ACTIVE_ARCH=NO \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+            -resultBundlePath TestResults.xcresult
         
   #     - name: Upload test results
   #       if: failure()
