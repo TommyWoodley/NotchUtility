@@ -15,7 +15,7 @@ struct DropUtility {
         for provider in providers {
             if provider.canLoadObject(ofClass: URL.self) {
                 group.enter()
-                provider.loadObject(ofClass: URL.self) { url, error in
+                _ = provider.loadObject(ofClass: URL.self) { url, error in
                     defer { group.leave() }
                     
                     if let url = url, url.isFileURL {

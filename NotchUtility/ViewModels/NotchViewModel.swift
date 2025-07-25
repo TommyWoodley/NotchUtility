@@ -32,7 +32,7 @@ import SwiftUI
 @MainActor
 class NotchViewModel: NSObject, ObservableObject {
     // === COMBINE SUBSCRIPTIONS ===
-    var cancellables: Set<AnyCancellable> = []    // Stores all event subscriptions for cleanup
+    nonisolated(unsafe) var cancellables: Set<AnyCancellable> = []    // Stores all event subscriptions for cleanup
     
     // === GEOMETRY CONFIGURATION ===
     let inset: CGFloat                            // Pixel adjustment for notch positioning (-4 for real notches)
@@ -54,9 +54,7 @@ class NotchViewModel: NSObject, ObservableObject {
     deinit {
         // === CLEANUP ===
         // Ensure proper cleanup when view model is deallocated
-        Task { @MainActor in
-            destroy()
-        }
+        destroy()
     }
 
     // === ANIMATION CONFIGURATION ===
@@ -186,7 +184,7 @@ class NotchViewModel: NSObject, ObservableObject {
      * Clean shutdown - cancel all event subscriptions and free resources
      * Critical for preventing memory leaks and cleaning up global event monitors
      */
-    func destroy() {
+    nonisolated func destroy() {
         cancellables.forEach { $0.cancel() }   // Cancel all Combine subscriptions
         cancellables.removeAll()               // Clear the storage array
     }
