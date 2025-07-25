@@ -142,7 +142,7 @@ struct NotchOverlayView: View {
             .contentShape(Rectangle())
             .frame(width: notchSize.width + vm.dropDetectorRange, height: notchSize.height + vm.dropDetectorRange)
             .onDrop(of: [.data], isTargeted: $dropTargeting) { _ in true }
-            .onChange(of: dropTargeting) { isTargeted in
+            .onChange(of: dropTargeting) { _, isTargeted in
                 if isTargeted, vm.status == .closed {
                     vm.notchOpen(.drag)
                     vm.hapticSender.send()
