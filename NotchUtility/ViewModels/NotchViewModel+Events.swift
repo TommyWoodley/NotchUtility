@@ -38,6 +38,15 @@ extension NotchViewModel {
      */
     func setupCancellables() {
         let events = EventMonitors.shared
+        
+        // === CONTENT CHANGE MONITORING ===
+        // Monitor content view model for changes and forward them to this view model
+        contentViewModel.objectWillChange
+            .sink { [weak self] in
+                self?.objectWillChange.send()
+            }
+            .store(in: &cancellables)
+        
         // === MOUSE CLICK HANDLING ===
         // This subscription handles all click behavior for opening/closing the interface
         events.mouseDown
