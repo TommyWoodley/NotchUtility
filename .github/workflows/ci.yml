@@ -76,6 +76,8 @@ jobs:
             
       - name: Build for testing
         run: |
+          ls -la
+          find . -name "*.xcodeproj" -type d
           xcodebuild clean build \
             -project NotchUtility.xcodeproj \
             -scheme NotchUtility \
