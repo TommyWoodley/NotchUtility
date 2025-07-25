@@ -65,9 +65,9 @@ class EventMonitor {
      * Should be called when we no longer need to monitor events or when shutting down.
      */
     func stop() {
-        if monitor != nil {
-            NSEvent.removeMonitor(monitor!)   // Remove the global monitor
-            monitor = nil                     // Clear our reference
+        if let monitor = monitor {
+            NSEvent.removeMonitor(monitor)   // Remove the global monitor
+            self.monitor = nil               // Clear our reference
         }
     }
 } 

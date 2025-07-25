@@ -270,11 +270,11 @@ private class MockPreviewContentViewModel: ContentViewModel {
     }
     
     override var hasFiles: Bool {
-        return mockHasFiles
+        mockHasFiles
     }
     
     override var formattedStorageUsage: String {
-        return mockHasFiles ? "2.4 MB" : "0 KB"
+        mockHasFiles ? "2.4 MB" : "0 KB"
     }
     
     override var isDropTargetActive: Bool {

@@ -85,7 +85,7 @@ class NotchWindowController: NSWindowController {
     }
 
     @available(*, unavailable)
-    required init?(coder _: NSCoder) { fatalError() }
+    required init?(coder _: NSCoder) { fatalError("This initializer is not supported") }
 
     /**
      * Convenience initializer: Creates both window and controller for a screen

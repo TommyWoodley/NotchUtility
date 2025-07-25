@@ -110,7 +110,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
      * 
      * The method ensures we always have the correct overlay window for the current setup
      */
-    @objc func rebuildApplicationWindows() {
+    @objc 
+    func rebuildApplicationWindows() {
         // === CLEANUP EXISTING OVERLAY ===
         // Destroy any existing overlay window and free its resources
         if let mainWindowController {
@@ -131,7 +132,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
      * This function periodically checks if our overlay should be key and visible,
      * and re-asserts it if needed. Called every 5 seconds by maintenance timer.
      */
-    @MainActor func makeKeyAndVisibleIfNeeded() {
+    @MainActor 
+    func makeKeyAndVisibleIfNeeded() {
         guard let controller = mainWindowController,
               let window = controller.window,
               let vm = controller.vm,

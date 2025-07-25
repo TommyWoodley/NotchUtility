@@ -28,14 +28,17 @@ struct NotchHeaderView: View {
             // Small clickable tab icons on the left
             HStack(spacing: 20) {
                 ForEach(NotchTab.allCases, id: \.self) { tab in
-                    Button(action: {
-                        selectedTab = tab
-                    }) {
-                        Image(systemName: tab.icon)
-                            .font(.headline)
-                            .foregroundColor(selectedTab == tab ? .white : .secondary)
-                            .scaleEffect(selectedTab == tab ? 1.1 : 1.0)
-                    }
+                    Button(
+                        action: {
+                            selectedTab = tab
+                        },
+                        label: {
+                            Image(systemName: tab.icon)
+                                .font(.headline)
+                                .foregroundColor(selectedTab == tab ? .white : .secondary)
+                                .scaleEffect(selectedTab == tab ? 1.1 : 1.0)
+                        }
+                    )
                     .buttonStyle(PlainButtonStyle())
                 }
             }
@@ -134,11 +137,11 @@ private class MockContentViewModel: ContentViewModel {
     }
     
     override var hasFiles: Bool {
-        return mockFileCount > 0
+        mockFileCount > 0
     }
     
     override var formattedStorageUsage: String {
-        return mockStorageUsage
+        mockStorageUsage
     }
 }
 

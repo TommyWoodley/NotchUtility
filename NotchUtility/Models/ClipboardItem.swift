@@ -41,10 +41,10 @@ struct ClipboardItem: Identifiable, Codable {
 }
 
 enum ClipboardType: String, CaseIterable, Codable {
-    case text = "text"
-    case image = "image"
-    case url = "url"
-    case other = "other"
+    case text
+    case image
+    case url
+    case other
     
     var displayName: String {
         switch self {

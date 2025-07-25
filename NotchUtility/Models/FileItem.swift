@@ -19,7 +19,7 @@ struct FileItem: Identifiable, Codable {
     
     // Non-codable properties (not persisted)
     var thumbnail: NSImage? {
-        return generateThumbnail()
+        generateThumbnail()
     }
     
     init(id: UUID = UUID(), name: String, path: URL, type: FileType, size: Int64, dateAdded: Date = Date(), contentHash: String = "") {
@@ -47,11 +47,11 @@ struct FileItem: Identifiable, Codable {
 }
 
 enum FileType: String, CaseIterable, Codable {
-    case document = "document"
-    case image = "image"
-    case archive = "archive"
-    case code = "code"
-    case other = "other"
+    case document
+    case image
+    case archive
+    case code
+    case other
     
     static func from(fileExtension: String) -> FileType {
         let ext = fileExtension.lowercased()

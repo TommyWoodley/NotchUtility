@@ -59,11 +59,10 @@ struct NotchOverlayView: View {
                 }
             }
             .transition(
-                .scale.combined(
-                    with: .opacity
-                ).combined(
-                    with: .offset(y: -vm.notchOpenedSize.height / 2)
-                ).animation(vm.animation)
+                .scale
+                    .combined(with: .opacity)
+                    .combined(with: .offset(y: -vm.notchOpenedSize.height / 2))
+                    .animation(vm.animation)
             )
         }
         .background(dragDetector)
@@ -135,8 +134,7 @@ struct NotchOverlayView: View {
             }
     }
 
-    @ViewBuilder
-    var dragDetector: some View {
+    @ViewBuilder var dragDetector: some View {
         RoundedRectangle(cornerRadius: notchCornerRadius)
             .foregroundStyle(Color.black.opacity(0.001))
             .contentShape(Rectangle())

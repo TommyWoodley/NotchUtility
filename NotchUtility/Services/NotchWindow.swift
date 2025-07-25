@@ -57,7 +57,7 @@ class NotchWindow: NSWindow {
             .fullScreenAuxiliary,           // Allows window to appear over full-screen applications
             .stationary,                    // Window doesn't move when user switches virtual desktops/spaces
             .canJoinAllSpaces,             // Window appears on all virtual desktops/Mission Control spaces
-            .ignoresCycle,                 // Window won't appear when user cycles through windows (Cmd+Tab)
+            .ignoresCycle                  // Window won't appear when user cycles through windows (Cmd+Tab)
         ]
         
         // === WINDOW LEVEL (CRITICAL FOR NOTCH OVERLAY) ===

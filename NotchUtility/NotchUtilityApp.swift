@@ -9,7 +9,8 @@ import SwiftUI
 
 @main
 struct NotchUtilityApp: App {
-    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    @NSApplicationDelegateAdaptor(AppDelegate.self) 
+    var appDelegate
     
     var body: some Scene {
         // We need to keep a Scene for app lifecycle, but it won't show
