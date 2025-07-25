@@ -146,7 +146,7 @@ extension NotchViewModel {
         // Actually perform the haptic feedback when requested
         hapticSender
             .throttle(for: .seconds(0.5), scheduler: DispatchQueue.main, latest: false)
-            .sink { [weak self] _ in
+            .sink { _ in
                 NSHapticFeedbackManager.defaultPerformer.perform(
                     .levelChange,          // Subtle "level change" haptic (like adjusting volume)
                     performanceTime: .now  // Execute immediately
