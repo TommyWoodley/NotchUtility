@@ -7,28 +7,54 @@
 
 import SwiftUI
 
+enum NotchTab: String, CaseIterable {
+    case files = "Files"
+    case clipboard = "Clipboard"
+    
+    var icon: String {
+        switch self {
+        case .files: return "doc.on.doc"
+        case .clipboard: return "doc.on.clipboard"
+        }
+    }
+}
+
 struct NotchHeaderView: View {
     @StateObject var vm: NotchViewModel
+    @Binding var selectedTab: NotchTab
     
     var body: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("NotchUtility")
-                    .font(.headline)
-                    .foregroundColor(.white)
+        VStack(spacing: 8) {
+            // App info and file count
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("NotchUtility")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                    
+                    Text(vm.contentViewModel.formattedStorageUsage)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 
-                Text(vm.contentViewModel.formattedStorageUsage)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                Spacer()
+                
+                if vm.contentViewModel.hasFiles {
+                    Text("\(vm.contentViewModel.storageManager.storedFiles.count) files")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
             
-            Spacer()
-            
-            if vm.contentViewModel.hasFiles {
-                Text("\(vm.contentViewModel.storageManager.storedFiles.count) files")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            // Tab selector
+            Picker("Content Type", selection: $selectedTab) {
+                ForEach(NotchTab.allCases, id: \.self) { tab in
+                    Image(systemName: tab.icon)
+                        .font(.caption2)
+                        .tag(tab)
+                }
             }
+            .pickerStyle(.segmented)
         }
     }
 }
@@ -36,28 +62,40 @@ struct NotchHeaderView: View {
 // MARK: - Preview Components
 
 #Preview("Header - No Files") {
-    NotchHeaderView(vm: createMockHeaderViewModel(fileCount: 0, storageUsage: "0 KB"))
+    NotchHeaderView(
+        vm: createMockHeaderViewModel(fileCount: 0, storageUsage: "0 KB"),
+        selectedTab: .constant(.files)
+    )
         .padding()
         .background(Color.black)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Header - Few Files") {
-    NotchHeaderView(vm: createMockHeaderViewModel(fileCount: 3, storageUsage: "2.4 MB"))
+    NotchHeaderView(
+        vm: createMockHeaderViewModel(fileCount: 3, storageUsage: "2.4 MB"),
+        selectedTab: .constant(.files)
+    )
         .padding()
         .background(Color.black)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Header - Many Files") {
-    NotchHeaderView(vm: createMockHeaderViewModel(fileCount: 15, storageUsage: "128 MB"))
+    NotchHeaderView(
+        vm: createMockHeaderViewModel(fileCount: 15, storageUsage: "128 MB"),
+        selectedTab: .constant(.clipboard)
+    )
         .padding()
         .background(Color.black)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Header - Large Storage") {
-    NotchHeaderView(vm: createMockHeaderViewModel(fileCount: 42, storageUsage: "1.2 GB"))
+    NotchHeaderView(
+        vm: createMockHeaderViewModel(fileCount: 42, storageUsage: "1.2 GB"),
+        selectedTab: .constant(.files)
+    )
         .padding()
         .background(Color.black)
         .preferredColorScheme(.dark)

@@ -9,32 +9,10 @@ import SwiftUI
 
 struct NotchContentView: View {
     @StateObject var vm: NotchViewModel
-    @State private var selectedTab: NotchTab = .files
-    
-    enum NotchTab: String, CaseIterable {
-        case files = "Files"
-        case clipboard = "Clipboard"
-        
-        var icon: String {
-            switch self {
-            case .files: return "doc.on.doc"
-            case .clipboard: return "doc.on.clipboard"
-            }
-        }
-    }
+    let selectedTab: NotchTab
     
     var body: some View {
         VStack(spacing: 8) {
-            // Tab selector
-            Picker("Content Type", selection: $selectedTab) {
-                ForEach(NotchTab.allCases, id: \.self) { tab in
-                    Image(systemName: tab.icon)
-                        .font(.caption2)
-                        .tag(tab)
-                }
-            }
-            .pickerStyle(.segmented)
-            
             // Content based on selected tab
             switch selectedTab {
             case .files:
@@ -174,47 +152,60 @@ struct NotchContentView: View {
 // MARK: - Preview Components
 
 #Preview("Content - Empty Files") {
-    NotchContentView(vm: createMockContentViewModel(hasFiles: false, hasClipboard: false))
+    NotchContentView(
+        vm: createMockContentViewModel(hasFiles: false, hasClipboard: false),
+        selectedTab: .files
+    )
         .frame(width: 300, height: 200)
         .background(Color.black)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Content - With Files") {
-    NotchContentView(vm: createMockContentViewModel(hasFiles: true, hasClipboard: false))
+    NotchContentView(
+        vm: createMockContentViewModel(hasFiles: true, hasClipboard: false),
+        selectedTab: .files
+    )
         .frame(width: 300, height: 200)
         .background(Color.black)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Content - Many Files") {
-    NotchContentView(vm: createMockContentViewModel(hasFiles: true, hasClipboard: false, fileCount: 12))
+    NotchContentView(
+        vm: createMockContentViewModel(hasFiles: true, hasClipboard: false, fileCount: 12),
+        selectedTab: .files
+    )
         .frame(width: 300, height: 200)
         .background(Color.black)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Content - Empty Clipboard") {
-    VStack {
-        NotchContentView(vm: createMockContentViewModel(hasFiles: false, hasClipboard: false))
-            .onAppear {
-                // Switch to clipboard tab programmatically
-            }
-    }
+    NotchContentView(
+        vm: createMockContentViewModel(hasFiles: false, hasClipboard: false),
+        selectedTab: .clipboard
+    )
     .frame(width: 300, height: 200)
     .background(Color.black)
     .preferredColorScheme(.dark)
 }
 
 #Preview("Content - With Clipboard") {
-    NotchContentView(vm: createMockContentViewModel(hasFiles: false, hasClipboard: true))
+    NotchContentView(
+        vm: createMockContentViewModel(hasFiles: false, hasClipboard: true),
+        selectedTab: .clipboard
+    )
         .frame(width: 300, height: 200)
         .background(Color.black)
         .preferredColorScheme(.dark)
 }
 
 #Preview("Content - Both Files and Clipboard") {
-    NotchContentView(vm: createMockContentViewModel(hasFiles: true, hasClipboard: true))
+    NotchContentView(
+        vm: createMockContentViewModel(hasFiles: true, hasClipboard: true),
+        selectedTab: .files
+    )
         .frame(width: 300, height: 250)
         .background(Color.black)
         .preferredColorScheme(.dark)

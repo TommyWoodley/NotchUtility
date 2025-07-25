@@ -10,6 +10,7 @@ import SwiftUI
 struct NotchOverlayView: View {
     @StateObject var vm: NotchViewModel
     @State var dropTargeting: Bool = false
+    @State private var selectedTab: NotchTab = .files
 
     var notchSize: CGSize {
         switch vm.status {
@@ -48,8 +49,8 @@ struct NotchOverlayView: View {
             Group {
                 if vm.status == .opened {
                     VStack(spacing: vm.spacing) {
-                        NotchHeaderView(vm: vm)
-                        NotchContentView(vm: vm)
+                        NotchHeaderView(vm: vm, selectedTab: $selectedTab)
+                        NotchContentView(vm: vm, selectedTab: selectedTab)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                     }
                     .padding(vm.spacing)
