@@ -14,6 +14,7 @@ excluded:
   - DerivedData/
   - NotchUtility.xcodeproj/
   - NotchUtility/Assets.xcassets/
+  - NotchUtility/ViewModels/NotchViewModel+Events.swift
 
 # Rules to run
 opt_in_rules:

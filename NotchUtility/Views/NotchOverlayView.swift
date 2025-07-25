@@ -134,8 +134,7 @@ struct NotchOverlayView: View {
             }
     }
 
-    @ViewBuilder 
-    var dragDetector: some View {
+    @ViewBuilder var dragDetector: some View {
         RoundedRectangle(cornerRadius: notchCornerRadius)
             .foregroundStyle(Color.black.opacity(0.001))
             .contentShape(Rectangle())
