@@ -24,10 +24,10 @@ env:
 jobs:
   lint:
     name: SwiftLint
-    runs-on: macos-15
+    runs-on: macos-14
     steps:
       - name: Checkout code
-        uses: actions/checkout
+        uses: actions/checkout@v4
           
       - name: Install SwiftLint
         run: |
@@ -39,7 +39,7 @@ jobs:
 
   test:
     name: Build and Test
-    runs-on: macos-15
+    runs-on: macos-14
     needs: lint
     strategy:
       matrix:
@@ -51,8 +51,6 @@ jobs:
             
       - name: Build for testing
         run: |
-          ls -la
-          find . -name "*.xcodeproj" -type d
           xcodebuild clean build-for-testing \
             -project NotchUtility.xcodeproj \
             -scheme NotchUtility \
