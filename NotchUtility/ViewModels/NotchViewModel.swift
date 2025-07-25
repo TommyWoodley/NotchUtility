@@ -70,7 +70,7 @@ class NotchViewModel: NSObject, ObservableObject {
     
     // === INTERFACE DIMENSIONS ===
     /// Size of the expanded notch interface (width x height in pixels)
-    let notchOpenedSize: CGSize = .init(width: 600, height: 200)
+    let notchOpenedSize: CGSize = .init(width: 600, height: 150)
     
     /// Range in pixels for drag detection around notch area
     let dropDetectorRange: CGFloat = 32

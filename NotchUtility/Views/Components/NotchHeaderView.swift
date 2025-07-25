@@ -13,8 +13,8 @@ enum NotchTab: String, CaseIterable {
     
     var icon: String {
         switch self {
-        case .files: return "doc.on.doc"
-        case .clipboard: return "doc.on.clipboard"
+        case .files: return "tray.fill"
+        case .clipboard: return "document.on.clipboard"
         }
     }
 }
@@ -24,37 +24,23 @@ struct NotchHeaderView: View {
     @Binding var selectedTab: NotchTab
     
     var body: some View {
-        VStack(spacing: 8) {
-            // App info and file count
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("NotchUtility")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                    
-                    Text(vm.contentViewModel.formattedStorageUsage)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                if vm.contentViewModel.hasFiles {
-                    Text("\(vm.contentViewModel.storageManager.storedFiles.count) files")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
+        HStack {
+            // Small clickable tab icons on the left
+            HStack(spacing: 20) {
+                ForEach(NotchTab.allCases, id: \.self) { tab in
+                    Button(action: {
+                        selectedTab = tab
+                    }) {
+                        Image(systemName: tab.icon)
+                            .font(.headline)
+                            .foregroundColor(selectedTab == tab ? .white : .secondary)
+                            .scaleEffect(selectedTab == tab ? 1.1 : 1.0)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
             }
             
-            // Tab selector
-            Picker("Content Type", selection: $selectedTab) {
-                ForEach(NotchTab.allCases, id: \.self) { tab in
-                    Image(systemName: tab.icon)
-                        .font(.caption2)
-                        .tag(tab)
-                }
-            }
-            .pickerStyle(.segmented)
+            Spacer()
         }
     }
 }
