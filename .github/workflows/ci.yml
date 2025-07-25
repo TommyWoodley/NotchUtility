@@ -34,7 +34,6 @@ jobs:
           brew install swiftlint
           
       - name: Run SwiftLint
-        working-directory: NotchUtility
         run: |
           swiftlint lint --reporter github-actions-logging
 
@@ -64,7 +63,6 @@ jobs:
             ${{ runner.os }}-derived-data-
             
       - name: Build for testing
-        working-directory: NotchUtility
         run: |
           xcodebuild clean build-for-testing \
             -project NotchUtility.xcodeproj \
@@ -76,7 +74,6 @@ jobs:
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES
             
   #     - name: Run tests
-  #       working-directory: NotchUtility
   #       run: |
   #         xcodebuild test-without-building \
   #           -project NotchUtility.xcodeproj \
@@ -113,7 +110,6 @@ jobs:
   #         xcode-version: '15.2'
           
   #     - name: Run tests with coverage
-  #       working-directory: NotchUtility
   #       run: |
   #         xcodebuild test \
   #           -project NotchUtility.xcodeproj \
@@ -126,7 +122,6 @@ jobs:
   #           -resultBundlePath TestResults-Coverage.xcresult
             
   #     - name: Generate coverage report
-  #       working-directory: NotchUtility
   #       run: |
   #         xcrun xccov view --report --json TestResults-Coverage.xcresult > coverage.json
           
