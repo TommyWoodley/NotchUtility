@@ -24,7 +24,7 @@ class StorageManager: ObservableObject {
     
     // Storage directory
     private lazy var tempDirectory: URL = {
-        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let documentsDirectory = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first ?? URL(fileURLWithPath: NSTemporaryDirectory())
         let tempDir = documentsDirectory.appendingPathComponent(tempDirectoryName)
         
         if !fileManager.fileExists(atPath: tempDir.path) {
@@ -104,10 +104,8 @@ class StorageManager: ObservableObject {
     }
 
     func removeAllFiles() throws {
-        for file in storedFiles {
-            if fileManager.fileExists(atPath: file.path.path) {
-                try fileManager.removeItem(at: file.path)
-            }
+        for file in storedFiles where fileManager.fileExists(atPath: file.path.path) {
+            try fileManager.removeItem(at: file.path)
         }
         
         storedFiles.removeAll()
@@ -143,7 +141,7 @@ class StorageManager: ObservableObject {
     }
     
     func fileExists(_ fileItem: FileItem) -> Bool {
-        return fileManager.fileExists(atPath: fileItem.path.path)
+        fileManager.fileExists(atPath: fileItem.path.path)
     }
     
     // MARK: - Configuration
