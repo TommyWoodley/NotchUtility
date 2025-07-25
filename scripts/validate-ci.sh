@@ -43,8 +43,6 @@ if xcodebuild clean build \
     -project NotchUtility.xcodeproj \
     -scheme NotchUtility \
     -destination 'platform=macOS,arch=arm64' \
-    CODE_SIGN_IDENTITY="" \
-    CODE_SIGNING_REQUIRED=NO \
     ONLY_ACTIVE_ARCH=NO \
     SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
     -quiet; then
@@ -54,23 +52,22 @@ else
     exit 1
 fi
 
-# echo ""
-# echo "🧪 Step 3: Running tests (treating warnings as errors)..."
-# echo "---------------------------------------------------------"
-# if xcodebuild test \
-#     -project NotchUtility.xcodeproj \
-#     -scheme NotchUtility \
-#     -destination 'platform=macOS,arch=arm64' \
-#     CODE_SIGN_IDENTITY="" \
-#     CODE_SIGNING_REQUIRED=NO \
-#     ONLY_ACTIVE_ARCH=NO \
-#     SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
-#     -quiet; then
-#     echo "✅ All tests passed with no warnings!"
-# else
-#     echo "❌ Tests failed. Please fix all test failures and build warnings."
-#     exit 1
-# fi
+echo ""
+echo "🧪 Step 3: Running unit tests (treating warnings as errors)..."
+echo "-------------------------------------------------------------"
+if xcodebuild test \
+    -project NotchUtility.xcodeproj \
+    -scheme NotchUtility \
+    -destination 'platform=macOS,arch=arm64' \
+    -only-testing:NotchUtilityTests \
+    ONLY_ACTIVE_ARCH=NO \
+    SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+    -quiet; then
+    echo "✅ All unit tests passed with no warnings!"
+else
+    echo "❌ Unit tests failed. Please fix all test failures and build warnings."
+    exit 1
+fi
 
 echo ""
 echo "🎉 All validation checks passed!"
