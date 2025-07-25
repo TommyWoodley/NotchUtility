@@ -36,23 +36,23 @@ else
     exit 1
 fi
 
-# echo ""
-# echo "🏗️  Step 2: Building project (treating warnings as errors)..."
-# echo "------------------------------------------------------------"
-# if xcodebuild clean build \
-#     -project NotchUtility.xcodeproj \
-#     -scheme NotchUtility \
-#     -destination 'platform=macOS,arch=arm64' \
-#     CODE_SIGN_IDENTITY="" \
-#     CODE_SIGNING_REQUIRED=NO \
-#     ONLY_ACTIVE_ARCH=NO \
-#     SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
-#     -quiet; then
-#     echo "✅ Build succeeded with no warnings!"
-# else
-#     echo "❌ Build failed. Please fix all build warnings and errors."
-#     exit 1
-# fi
+echo ""
+echo "🏗️  Step 2: Building project (treating warnings as errors)..."
+echo "------------------------------------------------------------"
+if xcodebuild clean build \
+    -project NotchUtility.xcodeproj \
+    -scheme NotchUtility \
+    -destination 'platform=macOS,arch=arm64' \
+    CODE_SIGN_IDENTITY="" \
+    CODE_SIGNING_REQUIRED=NO \
+    ONLY_ACTIVE_ARCH=NO \
+    SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+    -quiet; then
+    echo "✅ Build succeeded with no warnings!"
+else
+    echo "❌ Build failed. Please fix all build warnings and errors."
+    exit 1
+fi
 
 # echo ""
 # echo "🧪 Step 3: Running tests (treating warnings as errors)..."
