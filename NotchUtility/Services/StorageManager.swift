@@ -163,7 +163,7 @@ class StorageManager: ObservableObject {
         }
         
         // Mark as converting
-        await MainActor.run {
+        _ = await MainActor.run {
             convertingFiles.insert(fileItem.id)
         }
         
@@ -175,12 +175,12 @@ class StorageManager: ObservableObject {
             try await replaceFile(fileItem, with: convertedURL, newFormat: format)
             
             // Mark as done
-            await MainActor.run {
+            _ = await MainActor.run {
                 convertingFiles.remove(fileItem.id)
             }
             
         } catch {
-            await MainActor.run {
+            _ = await MainActor.run {
                 convertingFiles.remove(fileItem.id)
             }
             throw error
@@ -188,16 +188,7 @@ class StorageManager: ObservableObject {
     }
     
     private func performConversion(fileItem: FileItem, to format: ConversionFormat) async throws -> URL {
-        return try await withCheckedThrowingContinuation { continuation in
-            DispatchQueue.global(qos: .userInitiated).async {
-                do {
-                    let convertedURL = try self.convertImageFile(fileItem: fileItem, to: format)
-                    continuation.resume(returning: convertedURL)
-                } catch {
-                    continuation.resume(throwing: error)
-                }
-            }
-        }
+        return try convertImageFile(fileItem: fileItem, to: format)
     }
     
     private func convertImageFile(fileItem: FileItem, to format: ConversionFormat) throws -> URL {
@@ -240,7 +231,7 @@ class StorageManager: ObservableObject {
     }
     
     private func replaceFile(_ originalItem: FileItem, with convertedURL: URL, newFormat: ConversionFormat) async throws {
-        await MainActor.run {
+        _ = await MainActor.run {
             // Remove original file from storage
             if fileManager.fileExists(atPath: originalItem.path.path) {
                 try? fileManager.removeItem(at: originalItem.path)
@@ -357,7 +348,9 @@ class StorageManager: ObservableObject {
     
     private func setupCleanupTimer() {
         cleanupTimer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { _ in
-            self.performCleanup()
+            Task { @MainActor in
+                self.performCleanup()
+            }
         }
     }
     
