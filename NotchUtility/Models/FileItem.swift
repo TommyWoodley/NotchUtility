@@ -106,15 +106,28 @@ enum FileType: String, CaseIterable, Codable {
 
 // MARK: - Document Conversion Support
 
-struct ConversionFormat: Equatable, Hashable, Identifiable {
-    let targetExtension: String
-    let displayName: String
-    let systemIcon: String
+enum ConversionFormat: String, CaseIterable, Equatable, Hashable, Identifiable {
+    case jpeg = "jpg"
+    case png = "png"
     
-    var id: String { targetExtension }
+    var id: String { rawValue }
     
-    static let jpeg = ConversionFormat(targetExtension: "jpg", displayName: "JPEG", systemIcon: "photo")
-    static let png = ConversionFormat(targetExtension: "png", displayName: "PNG", systemIcon: "photo")
+    var targetExtension: String {
+        rawValue
+    }
+    
+    var displayName: String {
+        switch self {
+        case .jpeg: return "JPEG"
+        case .png: return "PNG"
+        }
+    }
+    
+    var systemIcon: String {
+        switch self {
+        case .jpeg, .png: return "photo"
+        }
+    }
     
     static func supportedConversions(for fileExtension: String) -> [ConversionFormat] {
         let ext = fileExtension.lowercased()
