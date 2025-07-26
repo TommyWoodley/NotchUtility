@@ -22,6 +22,7 @@ class StorageManager: ObservableObject {
     
     private let fileManager = FileManager.default
     private var cleanupTimer: Timer?
+    private let conversionService = FileConversionService()
     
     // Storage directory
     private lazy var tempDirectory: URL = {
@@ -154,25 +155,17 @@ class StorageManager: ObservableObject {
     // MARK: - Document Conversion
     
     func convertFile(_ fileItem: FileItem, to format: ConversionFormat) async throws {
-        guard fileItem.canBeConverted(to: format) else {
-            throw ConversionError.unsupportedConversion
-        }
-        
-        guard format.targetExtension != fileItem.fileExtension else {
-            throw ConversionError.sameFormat
-        }
-        
         // Mark as converting
         _ = await MainActor.run {
             convertingFiles.insert(fileItem.id)
         }
         
         do {
-            // Perform the conversion
-            let convertedURL = try await performConversion(fileItem: fileItem, to: format)
+            // Perform the conversion using the service
+            let conversionResult = try await conversionService.convertFile(fileItem, to: format)
             
-            // Replace the original file
-            try await replaceFile(fileItem, with: convertedURL, newFormat: format)
+            // Write the converted data to disk and replace the original file
+            try await replaceFileWithConvertedData(fileItem, conversionResult: conversionResult)
             
             // Mark as done
             _ = await MainActor.run {
@@ -187,50 +180,15 @@ class StorageManager: ObservableObject {
         }
     }
     
-    private func performConversion(fileItem: FileItem, to format: ConversionFormat) async throws -> URL {
-        try convertImageFile(fileItem: fileItem, to: format)
-    }
+
     
-    private func convertImageFile(fileItem: FileItem, to format: ConversionFormat) throws -> URL {
-        guard let image = NSImage(contentsOf: fileItem.path) else {
-            throw ConversionError.invalidSourceFile
-        }
+    private func replaceFileWithConvertedData(_ originalItem: FileItem, conversionResult: ConversionResult) async throws {
+        // Create the converted file URL
+        let convertedURL = tempDirectory.appendingPathComponent(conversionResult.newFileName)
         
-        guard let tiffData = image.tiffRepresentation,
-              let bitmapRep = NSBitmapImageRep(data: tiffData) else {
-            throw ConversionError.conversionFailed
-        }
+        // Write the converted data to disk
+        try conversionResult.data.write(to: convertedURL)
         
-        let fileType: NSBitmapImageRep.FileType
-        let properties: [NSBitmapImageRep.PropertyKey: Any]
-        
-        switch format.targetExtension.lowercased() {
-        case "jpg", "jpeg":
-            fileType = .jpeg
-            properties = [NSBitmapImageRep.PropertyKey.compressionFactor: 0.9]
-        case "png":
-            fileType = .png
-            properties = [:]
-        default:
-            throw ConversionError.unsupportedFormat
-        }
-        
-        guard let convertedData = bitmapRep.representation(using: fileType, properties: properties) else {
-            throw ConversionError.conversionFailed
-        }
-        
-        // Create output filename
-        let nameWithoutExtension = (fileItem.name as NSString).deletingPathExtension
-        let convertedFileName = "\(nameWithoutExtension).\(format.targetExtension)"
-        let convertedURL = tempDirectory.appendingPathComponent(convertedFileName)
-        
-        // Write converted file
-        try convertedData.write(to: convertedURL)
-        
-        return convertedURL
-    }
-    
-    private func replaceFile(_ originalItem: FileItem, with convertedURL: URL, newFormat: ConversionFormat) async throws {
         _ = await MainActor.run {
             // Remove original file from storage
             if fileManager.fileExists(atPath: originalItem.path.path) {
@@ -239,15 +197,13 @@ class StorageManager: ObservableObject {
             
             // Update the file item with new information
             if let index = storedFiles.firstIndex(where: { $0.id == originalItem.id }) {
-                let newSize = (try? getFileSize(at: convertedURL)) ?? 0
-                let newHash = (try? computeFileHash(at: convertedURL)) ?? ""
-                let newType = FileType.from(fileExtension: newFormat.targetExtension)
-                let nameWithoutExtension = (originalItem.name as NSString).deletingPathExtension
-                let newName = "\(nameWithoutExtension).\(newFormat.targetExtension)"
+                let newSize = Int64(conversionResult.data.count)
+                let newHash = computeDataHash(conversionResult.data)
+                let newType = FileType.from(fileExtension: conversionResult.format.targetExtension)
                 
                 let updatedItem = FileItem(
                     id: originalItem.id, // Keep the same ID
-                    name: newName,
+                    name: conversionResult.newFileName,
                     path: convertedURL,
                     type: newType,
                     size: newSize,
@@ -365,6 +321,10 @@ class StorageManager: ObservableObject {
     
     private func computeFileHash(at url: URL) throws -> String {
         let data = try Data(contentsOf: url)
+        return computeDataHash(data)
+    }
+    
+    private func computeDataHash(_ data: Data) -> String {
         let hash = SHA256.hash(data: data)
         return hash.compactMap { String(format: "%02x", $0) }.joined()
     }
