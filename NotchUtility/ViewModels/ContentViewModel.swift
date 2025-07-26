@@ -78,9 +78,11 @@ class ContentViewModel: ObservableObject {
     // MARK: - Document Conversion
     
     func convertFile(_ fileItem: FileItem, to format: ConversionFormat) {
-        Task.fire(storageManager.convertFile(fileItem, to: format), catch: { error in
-            showError(error.localizedDescription)
-        })
+        Task.fire {
+            try await self.storageManager.convertFile(fileItem, to: format)
+        } catch: { error in
+            self.showError(error.localizedDescription)
+        }
     }
     
     func isConverting(_ fileItem: FileItem) -> Bool {
