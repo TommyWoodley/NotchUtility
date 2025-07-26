@@ -13,6 +13,7 @@ import CryptoKit
 class StorageManager: ObservableObject {
     @Published var storedFiles: [FileItem] = []
     @Published var totalStorageUsed: Int64 = 0
+    @Published var convertingFiles: Set<UUID> = []
     
     // Static Configuration
     private let storageLimit: Int64 = 100 // 100MB fixed
@@ -100,6 +101,10 @@ class StorageManager: ObservableObject {
         // Remove from array
         storedFiles.removeAll { $0.id == fileItem.id }
         totalStorageUsed -= fileItem.size
+        
+        // Remove from converting files
+        convertingFiles.remove(fileItem.id)
+        
         saveStoredFiles()
     }
 
@@ -110,6 +115,7 @@ class StorageManager: ObservableObject {
         
         storedFiles.removeAll()
         totalStorageUsed = 0
+        convertingFiles.removeAll()
         saveStoredFiles()
     }
 
@@ -133,6 +139,7 @@ class StorageManager: ObservableObject {
         for invalidFile in invalidFiles {
             storedFiles.removeAll { $0.id == invalidFile.id }
             totalStorageUsed -= invalidFile.size
+            convertingFiles.remove(invalidFile.id)
         }
         
         if !invalidFiles.isEmpty {
@@ -143,6 +150,132 @@ class StorageManager: ObservableObject {
     func fileExists(_ fileItem: FileItem) -> Bool {
         fileManager.fileExists(atPath: fileItem.path.path)
     }
+    
+    // MARK: - Document Conversion
+    
+    func convertFile(_ fileItem: FileItem, to format: ConversionFormat) async throws {
+        guard fileItem.canBeConverted(to: format) else {
+            throw ConversionError.unsupportedConversion
+        }
+        
+        guard format.targetExtension != fileItem.fileExtension else {
+            throw ConversionError.sameFormat
+        }
+        
+        // Mark as converting
+        await MainActor.run {
+            convertingFiles.insert(fileItem.id)
+        }
+        
+        do {
+            // Perform the conversion
+            let convertedURL = try await performConversion(fileItem: fileItem, to: format)
+            
+            // Replace the original file
+            try await replaceFile(fileItem, with: convertedURL, newFormat: format)
+            
+            // Mark as done
+            await MainActor.run {
+                convertingFiles.remove(fileItem.id)
+            }
+            
+        } catch {
+            await MainActor.run {
+                convertingFiles.remove(fileItem.id)
+            }
+            throw error
+        }
+    }
+    
+    private func performConversion(fileItem: FileItem, to format: ConversionFormat) async throws -> URL {
+        return try await withCheckedThrowingContinuation { continuation in
+            DispatchQueue.global(qos: .userInitiated).async {
+                do {
+                    let convertedURL = try self.convertImageFile(fileItem: fileItem, to: format)
+                    continuation.resume(returning: convertedURL)
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
+    private func convertImageFile(fileItem: FileItem, to format: ConversionFormat) throws -> URL {
+        guard let image = NSImage(contentsOf: fileItem.path) else {
+            throw ConversionError.invalidSourceFile
+        }
+        
+        guard let tiffData = image.tiffRepresentation,
+              let bitmapRep = NSBitmapImageRep(data: tiffData) else {
+            throw ConversionError.conversionFailed
+        }
+        
+        let fileType: NSBitmapImageRep.FileType
+        let properties: [NSBitmapImageRep.PropertyKey: Any]
+        
+        switch format.targetExtension.lowercased() {
+        case "jpg", "jpeg":
+            fileType = .jpeg
+            properties = [NSBitmapImageRep.PropertyKey.compressionFactor: 0.9]
+        case "png":
+            fileType = .png
+            properties = [:]
+        default:
+            throw ConversionError.unsupportedFormat
+        }
+        
+        guard let convertedData = bitmapRep.representation(using: fileType, properties: properties) else {
+            throw ConversionError.conversionFailed
+        }
+        
+        // Create output filename
+        let nameWithoutExtension = (fileItem.name as NSString).deletingPathExtension
+        let convertedFileName = "\(nameWithoutExtension).\(format.targetExtension)"
+        let convertedURL = tempDirectory.appendingPathComponent(convertedFileName)
+        
+        // Write converted file
+        try convertedData.write(to: convertedURL)
+        
+        return convertedURL
+    }
+    
+    private func replaceFile(_ originalItem: FileItem, with convertedURL: URL, newFormat: ConversionFormat) async throws {
+        await MainActor.run {
+            // Remove original file from storage
+            if fileManager.fileExists(atPath: originalItem.path.path) {
+                try? fileManager.removeItem(at: originalItem.path)
+            }
+            
+            // Update the file item with new information
+            if let index = storedFiles.firstIndex(where: { $0.id == originalItem.id }) {
+                let newSize = (try? getFileSize(at: convertedURL)) ?? 0
+                let newHash = (try? computeFileHash(at: convertedURL)) ?? ""
+                let newType = FileType.from(fileExtension: newFormat.targetExtension)
+                let nameWithoutExtension = (originalItem.name as NSString).deletingPathExtension
+                let newName = "\(nameWithoutExtension).\(newFormat.targetExtension)"
+                
+                let updatedItem = FileItem(
+                    id: originalItem.id, // Keep the same ID
+                    name: newName,
+                    path: convertedURL,
+                    type: newType,
+                    size: newSize,
+                    dateAdded: originalItem.dateAdded,
+                    contentHash: newHash
+                )
+                
+                // Update storage tracking
+                totalStorageUsed = totalStorageUsed - originalItem.size + newSize
+                
+                // Replace in array
+                storedFiles[index] = updatedItem
+                
+                saveStoredFiles()
+            }
+        }
+    }
+    
+
     
     // MARK: - Configuration
     
@@ -244,6 +377,8 @@ class StorageManager: ObservableObject {
     }
 }
 
+
+
 // MARK: - Errors
 
 enum StorageError: LocalizedError {
@@ -265,6 +400,29 @@ enum StorageError: LocalizedError {
             return "File '\(fileName)' already exists in storage."
         case .hiddenFileNotSupported:
             return "Hidden files (starting with '.') are not supported."
+        }
+    }
+}
+
+enum ConversionError: LocalizedError {
+    case unsupportedConversion
+    case unsupportedFormat
+    case invalidSourceFile
+    case conversionFailed
+    case sameFormat
+    
+    var errorDescription: String? {
+        switch self {
+        case .unsupportedConversion:
+            return "This file type cannot be converted."
+        case .unsupportedFormat:
+            return "Target format is not supported."
+        case .invalidSourceFile:
+            return "Source file is invalid or corrupted."
+        case .conversionFailed:
+            return "Conversion failed. Please try again."
+        case .sameFormat:
+            return "File is already in the target format."
         }
     }
 } 
