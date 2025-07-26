@@ -55,7 +55,7 @@ extension Task where Success == Void, Failure == Never {
         _ operation: @escaping () async throws -> Void,
         catch errorHandler: (@MainActor (Error) -> Void)? = nil
     ) -> Task<Void, Never> {
-        return Task {
+        Task {
             do {
                 try await operation()
             } catch {

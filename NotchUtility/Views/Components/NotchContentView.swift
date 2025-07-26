@@ -93,11 +93,10 @@ struct NotchContentView: View {
                 ForEach(vm.contentViewModel.storageManager.storedFiles.prefix(8)) { file in
                     CompactFileItemView(
                         file: file,
-                        isConverting: vm.contentViewModel.isConverting(file),
-                        onAction: { action, file in
-                            handleFileAction(action, file)
-                        }
-                    )
+                        isConverting: vm.contentViewModel.isConverting(file)
+                    ) { action, file in
+                        handleFileAction(action, file)
+                    }
                 }
                 
                 if vm.contentViewModel.storageManager.storedFiles.count > 8 {

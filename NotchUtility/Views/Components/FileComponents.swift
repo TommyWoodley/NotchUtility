@@ -88,8 +88,7 @@ struct CompactFileItemView: View {
         .cornerRadius(4)
     }
     
-    @ViewBuilder
-    private var contextMenuContent: some View {
+    @ViewBuilder private var contextMenuContent: some View {
         if !isConverting {
             Button("Open") { onAction(.open, file) }
             Button("Reveal in Finder") { onAction(.revealInFinder, file) }
@@ -101,9 +100,9 @@ struct CompactFileItemView: View {
                 
                 Menu("Convert To") {
                     ForEach(file.supportedConversions) { format in
-                        Button(action: {
+                        Button {
                             onAction(.convert(format), file)
-                        }) {
+                        } label: {
                             Label(format.displayName, systemImage: format.systemIcon)
                         }
                     }
@@ -140,11 +139,12 @@ struct CompactFileItemView: View {
 }
 
 #Preview("File Item - Converting") {
-    CompactFileItemView(file: createMockFile(name: "Photo.jpg", type: .image), isConverting: true,
-        onAction: { action, file in
-            print("Action: \(action) on file: \(file.name)")
-        }
-    )
+    CompactFileItemView(
+        file: createMockFile(name: "Photo.jpg", type: .image),
+        isConverting: true
+    ) { action, file in
+        print("Action: \(action) on file: \(file.name)")
+    }
     .padding()
     .background(Color.black)
     .preferredColorScheme(.dark)

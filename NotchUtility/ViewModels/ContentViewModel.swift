@@ -17,7 +17,7 @@ class ContentViewModel: ObservableObject {
     @Published var showingError = false
     @Published var errorMessage = ""
     @Published var showingSettings = false
-    @Published var showingConversionMenu: UUID? = nil
+    @Published var showingConversionMenu: UUID?
     
     private var cancellables = Set<AnyCancellable>()
     private var validationTimer: Timer?
