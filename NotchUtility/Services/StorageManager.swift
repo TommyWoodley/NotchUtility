@@ -13,6 +13,7 @@ import CryptoKit
 class StorageManager: ObservableObject {
     @Published var storedFiles: [FileItem] = []
     @Published var totalStorageUsed: Int64 = 0
+    @Published var convertingFiles: Set<UUID> = []
     
     // Static Configuration
     private let storageLimit: Int64 = 100 // 100MB fixed
@@ -21,6 +22,7 @@ class StorageManager: ObservableObject {
     
     private let fileManager = FileManager.default
     private var cleanupTimer: Timer?
+    private let conversionService = FileConversionService()
     
     // Storage directory
     private lazy var tempDirectory: URL = {
@@ -100,6 +102,10 @@ class StorageManager: ObservableObject {
         // Remove from array
         storedFiles.removeAll { $0.id == fileItem.id }
         totalStorageUsed -= fileItem.size
+        
+        // Remove from converting files
+        convertingFiles.remove(fileItem.id)
+        
         saveStoredFiles()
     }
 
@@ -110,6 +116,7 @@ class StorageManager: ObservableObject {
         
         storedFiles.removeAll()
         totalStorageUsed = 0
+        convertingFiles.removeAll()
         saveStoredFiles()
     }
 
@@ -133,6 +140,7 @@ class StorageManager: ObservableObject {
         for invalidFile in invalidFiles {
             storedFiles.removeAll { $0.id == invalidFile.id }
             totalStorageUsed -= invalidFile.size
+            convertingFiles.remove(invalidFile.id)
         }
         
         if !invalidFiles.isEmpty {
@@ -143,6 +151,78 @@ class StorageManager: ObservableObject {
     func fileExists(_ fileItem: FileItem) -> Bool {
         fileManager.fileExists(atPath: fileItem.path.path)
     }
+    
+    // MARK: - Document Conversion
+    
+    func convertFile(_ fileItem: FileItem, to format: ConversionFormat) async throws {
+        // Mark as converting
+        _ = await MainActor.run {
+            convertingFiles.insert(fileItem.id)
+        }
+        
+        do {
+            // Perform the conversion using the service
+            let conversionResult = try await conversionService.convertFile(fileItem, to: format)
+            
+            // Write the converted data to disk and replace the original file
+            try await replaceFileWithConvertedData(fileItem, conversionResult: conversionResult)
+            
+            // Mark as done
+            _ = await MainActor.run {
+                convertingFiles.remove(fileItem.id)
+            }
+            
+        } catch {
+            _ = await MainActor.run {
+                convertingFiles.remove(fileItem.id)
+            }
+            throw error
+        }
+    }
+    
+
+    
+    private func replaceFileWithConvertedData(_ originalItem: FileItem, conversionResult: ConversionResult) async throws {
+        // Create the converted file URL
+        let convertedURL = tempDirectory.appendingPathComponent(conversionResult.newFileName)
+        
+        // Write the converted data to disk
+        try conversionResult.data.write(to: convertedURL)
+        
+        _ = await MainActor.run {
+            // Remove original file from storage
+            if fileManager.fileExists(atPath: originalItem.path.path) {
+                try? fileManager.removeItem(at: originalItem.path)
+            }
+            
+            // Update the file item with new information
+            if let index = storedFiles.firstIndex(where: { $0.id == originalItem.id }) {
+                let newSize = Int64(conversionResult.data.count)
+                let newHash = computeDataHash(conversionResult.data)
+                let newType = FileType.from(fileExtension: conversionResult.format.targetExtension)
+                
+                let updatedItem = FileItem(
+                    id: originalItem.id, // Keep the same ID
+                    name: conversionResult.newFileName,
+                    path: convertedURL,
+                    type: newType,
+                    size: newSize,
+                    dateAdded: originalItem.dateAdded,
+                    contentHash: newHash
+                )
+                
+                // Update storage tracking
+                totalStorageUsed = totalStorageUsed - originalItem.size + newSize
+                
+                // Replace in array
+                storedFiles[index] = updatedItem
+                
+                saveStoredFiles()
+            }
+        }
+    }
+    
+
     
     // MARK: - Configuration
     
@@ -224,7 +304,9 @@ class StorageManager: ObservableObject {
     
     private func setupCleanupTimer() {
         cleanupTimer = Timer.scheduledTimer(withTimeInterval: 3600, repeats: true) { _ in
-            self.performCleanup()
+            Task { @MainActor in
+                self.performCleanup()
+            }
         }
     }
     
@@ -239,32 +321,11 @@ class StorageManager: ObservableObject {
     
     private func computeFileHash(at url: URL) throws -> String {
         let data = try Data(contentsOf: url)
+        return computeDataHash(data)
+    }
+    
+    private func computeDataHash(_ data: Data) -> String {
         let hash = SHA256.hash(data: data)
         return hash.compactMap { String(format: "%02x", $0) }.joined()
-    }
-}
-
-// MARK: - Errors
-
-enum StorageError: LocalizedError {
-    case storageLimitExceeded
-    case fileNotFound
-    case copyFailed
-    case duplicateFile(String)
-    case hiddenFileNotSupported
-    
-    var errorDescription: String? {
-        switch self {
-        case .storageLimitExceeded:
-            return "Storage limit exceeded. Please remove some files."
-        case .fileNotFound:
-            return "File not found."
-        case .copyFailed:
-            return "Failed to copy file to storage."
-        case .duplicateFile(let fileName):
-            return "File '\(fileName)' already exists in storage."
-        case .hiddenFileNotSupported:
-            return "Hidden files (starting with '.') are not supported."
-        }
     }
 } 

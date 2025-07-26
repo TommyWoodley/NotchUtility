@@ -27,12 +27,12 @@ if ! command -v swiftlint &> /dev/null; then
 fi
 
 echo ""
-echo "🔍 Step 1: Running SwiftLint..."
-echo "--------------------------------"
-if swiftlint lint; then
-    echo "✅ SwiftLint passed!"
+echo "🔍 Step 1: Running SwiftLint (treating warnings as errors)..."
+echo "------------------------------------------------------------"
+if swiftlint lint --strict; then
+    echo "✅ SwiftLint passed with no warnings!"
 else
-    echo "❌ SwiftLint failed. Please fix the issues above."
+    echo "❌ SwiftLint failed. Please fix all warnings and errors above."
     exit 1
 fi
 
