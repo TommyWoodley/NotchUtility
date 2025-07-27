@@ -44,6 +44,18 @@ struct FileItem: Identifiable, Codable {
     var fileExtension: String {
         path.pathExtension.lowercased()
     }
+    
+    var supportedConversions: [ConversionFormat] {
+        ConversionFormat.supportedConversions(for: fileExtension)
+    }
+    
+    var canBeConverted: Bool {
+        !supportedConversions.isEmpty
+    }
+    
+    func canBeConverted(to format: ConversionFormat) -> Bool {
+        supportedConversions.contains(format)
+    }
 }
 
 enum FileType: String, CaseIterable, Codable {
@@ -88,6 +100,45 @@ enum FileType: String, CaseIterable, Codable {
         case .archive: return "archivebox"
         case .code: return "chevron.left.forwardslash.chevron.right"
         case .other: return "questionmark.circle"
+        }
+    }
+}
+
+// MARK: - Document Conversion Support
+
+enum ConversionFormat: String, CaseIterable, Equatable, Hashable, Identifiable {
+    case jpeg = "jpg"
+    case png = "png"
+    
+    var id: String { rawValue }
+    
+    var targetExtension: String {
+        rawValue
+    }
+    
+    var displayName: String {
+        switch self {
+        case .jpeg: return "JPEG"
+        case .png: return "PNG"
+        }
+    }
+    
+    var systemIcon: String {
+        switch self {
+        case .jpeg, .png: return "photo"
+        }
+    }
+    
+    static func supportedConversions(for fileExtension: String) -> [ConversionFormat] {
+        let ext = fileExtension.lowercased()
+        
+        switch ext {
+        case "jpg", "jpeg":
+            return [.png]
+        case "png":
+            return [.jpeg]
+        default:
+            return []
         }
     }
 } 

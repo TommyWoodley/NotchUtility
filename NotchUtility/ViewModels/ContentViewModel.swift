@@ -17,6 +17,7 @@ class ContentViewModel: ObservableObject {
     @Published var showingError = false
     @Published var errorMessage = ""
     @Published var showingSettings = false
+    @Published var showingConversionMenu: UUID?
     
     private var cancellables = Set<AnyCancellable>()
     private var validationTimer: Timer?
@@ -72,6 +73,30 @@ class ContentViewModel: ObservableObject {
     
     func validateFiles() {
         storageManager.validateAndCleanupFiles()
+    }
+    
+    // MARK: - Document Conversion
+    
+    func convertFile(_ fileItem: FileItem, to format: ConversionFormat) {
+        Task.fire {
+            try await self.storageManager.convertFile(fileItem, to: format)
+        } catch: { error in
+            self.showError(error.localizedDescription)
+        }
+    }
+    
+    func isConverting(_ fileItem: FileItem) -> Bool {
+        storageManager.convertingFiles.contains(fileItem.id)
+    }
+    
+    func showConversionMenu(for fileItem: FileItem) {
+        if fileItem.canBeConverted {
+            showingConversionMenu = fileItem.id
+        }
+    }
+    
+    func hideConversionMenu() {
+        showingConversionMenu = nil
     }
     
     // MARK: - Clipboard Operations

@@ -91,7 +91,10 @@ struct NotchContentView: View {
                 GridItem(.adaptive(minimum: 60, maximum: 70), spacing: 6)
             ], spacing: 6) {
                 ForEach(vm.contentViewModel.storageManager.storedFiles.prefix(8)) { file in
-                    CompactFileItemView(file: file) { action, file in
+                    CompactFileItemView(
+                        file: file,
+                        isConverting: vm.contentViewModel.isConverting(file)
+                    ) { action, file in
                         handleFileAction(action, file)
                     }
                 }
@@ -145,6 +148,8 @@ struct NotchContentView: View {
             vm.contentViewModel.copyPathToClipboard(file)
         case .remove:
             vm.contentViewModel.removeFile(file)
+        case .convert(let format):
+            vm.contentViewModel.convertFile(file, to: format)
         }
     }
 }
@@ -280,6 +285,10 @@ private class MockPreviewContentViewModel: ContentViewModel {
     override var isDropTargetActive: Bool {
         get { false }
         set { }
+    }
+    
+    override func isConverting(_ fileItem: FileItem) -> Bool {
+        false
     }
 }
 
