@@ -138,45 +138,4 @@ struct FileConversionPDFTests {
         try? FileManager.default.removeItem(at: fileItem.path)
     }
     
-    // MARK: - PDF to Image Conversion Tests
-    
-    @Test("Convert PDF to JPEG successfully")
-    func testConvertPDFToJPEG() async throws {
-        let testName = "test_\(UUID().uuidString).pdf"
-        let fileItem = try createTestPDFFile(name: testName)
-        let format = ConversionFormat.jpeg
-        
-        let result = try await service.convertFile(fileItem, to: format)
-        
-        #expect(result.format == format)
-        #expect(result.newFileName.hasSuffix(".jpg"))
-        #expect(!result.data.isEmpty)
-        
-        guard let convertedImage = NSImage(data: result.data) else {
-            throw NSError(domain: "TestError", code: 3, userInfo: [NSLocalizedDescriptionKey: "Converted data is not a valid image"])
-        }
-        #expect(convertedImage.isValid)
-        
-        try? FileManager.default.removeItem(at: fileItem.path)
-    }
-    
-    @Test("Convert PDF to PNG successfully")
-    func testConvertPDFToPNG() async throws {
-        let testName = "test_\(UUID().uuidString).pdf"
-        let fileItem = try createTestPDFFile(name: testName)
-        let format = ConversionFormat.png
-        
-        let result = try await service.convertFile(fileItem, to: format)
-        
-        #expect(result.format == format)
-        #expect(result.newFileName.hasSuffix(".png"))
-        #expect(!result.data.isEmpty)
-        
-        guard let convertedImage = NSImage(data: result.data) else {
-            throw NSError(domain: "TestError", code: 3, userInfo: [NSLocalizedDescriptionKey: "Converted data is not a valid image"])
-        }
-        #expect(convertedImage.isValid)
-        
-        try? FileManager.default.removeItem(at: fileItem.path)
-    }
 } 

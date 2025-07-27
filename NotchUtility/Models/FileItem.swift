@@ -175,15 +175,15 @@ enum ConversionFormat: String, CaseIterable, Equatable, Hashable, Identifiable {
         switch ext {
         // Image to image conversions
         case "jpg", "jpeg":
-            return [.png, .tiff, .bmp, .gif, .webp, .pdf]
+            return [.png, .tiff, .bmp, .gif, .pdf]
         case "png":
-            return [.jpeg, .tiff, .bmp, .gif, .webp, .pdf]
+            return [.jpeg, .tiff, .bmp, .gif, .pdf]
         case "tiff", "tif":
-            return [.jpeg, .png, .bmp, .gif, .webp, .pdf]
+            return [.jpeg, .png, .bmp, .gif, .pdf]
         case "bmp":
-            return [.jpeg, .png, .tiff, .gif, .webp, .pdf]
+            return [.jpeg, .png, .tiff, .gif, .pdf]
         case "gif":
-            return [.jpeg, .png, .tiff, .bmp, .webp, .pdf]
+            return [.jpeg, .png, .tiff, .bmp, .pdf]
         case "webp":
             return [.jpeg, .png, .tiff, .bmp, .gif, .pdf]
             
@@ -193,12 +193,10 @@ enum ConversionFormat: String, CaseIterable, Equatable, Hashable, Identifiable {
         case "rtf":
             return [.txt, .pdf]
         case "pdf":
-            return [.jpeg, .png, .tiff] // PDF to image
+            return []
             
         // Other document formats to basic formats
-        case "doc", "docx":
-            return [.txt, .rtf, .pdf]
-        case "pages":
+        case "doc":
             return [.txt, .rtf, .pdf]
             
         default:
