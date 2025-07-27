@@ -2,8 +2,31 @@
 
 # NotchUtility CI Validation Script
 # Run this script locally to ensure your changes will pass the CI pipeline
+# Usage: ./validate-ci.sh [-ui]
+#   -ui: Include UI tests in validation (optional)
 
 set -e
+
+# Parse command line arguments
+RUN_UI_TESTS=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -ui)
+            RUN_UI_TESTS=true
+            shift
+            ;;
+        -h|--help)
+            echo "Usage: $0 [-ui]"
+            echo "  -ui: Include UI tests in validation (optional)"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Usage: $0 [-ui]"
+            exit 1
+            ;;
+    esac
+done
 
 echo "🚀 NotchUtility CI Validation"
 echo "=============================="
@@ -67,6 +90,28 @@ if xcodebuild test \
 else
     echo "❌ Unit tests failed. Please fix all test failures and build warnings."
     exit 1
+fi
+
+echo ""
+echo "🖥️  Step 4: UI Tests..."
+echo "----------------------"
+if [ "$RUN_UI_TESTS" = true ]; then
+    echo "Running UI tests (treating warnings as errors)..."
+    if xcodebuild test \
+        -project NotchUtility.xcodeproj \
+        -scheme NotchUtility \
+        -destination 'platform=macOS,arch=arm64' \
+        -only-testing:NotchUtilityUITests \
+        ONLY_ACTIVE_ARCH=NO \
+        SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+        -quiet; then
+        echo "✅ All UI tests passed with no warnings!"
+    else
+        echo "❌ UI tests failed. Please fix all test failures and build warnings."
+        exit 1
+    fi
+else
+    echo "⏭️  Skipping UI tests (use -ui flag to include them)"
 fi
 
 echo ""
