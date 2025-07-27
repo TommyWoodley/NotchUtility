@@ -60,8 +60,11 @@ final class NotchUtilityUITests: XCTestCase {
         let dropZoneButton = app.buttons["tray.fill"]
         XCTAssertTrue(dropZoneButton.exists, "Drop zone button should exist")
         
-        clipboardButton.click()
+        let toolsButton = app.buttons["wrench"]
+        XCTAssert(toolsButton.exists, "Tools button should exist")
         
+        clipboardButton.click()
         dropZoneButton.click()
+        toolsButton.click()
     }
 }
