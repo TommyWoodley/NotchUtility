@@ -17,7 +17,7 @@ class FileConversionService {
         }
         
         guard format.targetExtension != fileItem.fileExtension else {
-            throw ConversionError.sameFormat
+            throw ConversionError.unsupportedConversion
         }
         
         return try await performConversion(fileItem: fileItem, to: format)
