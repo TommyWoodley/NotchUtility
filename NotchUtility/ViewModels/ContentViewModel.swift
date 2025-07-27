@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import Combine
+import AppKit
 
 @MainActor
 class ContentViewModel: ObservableObject {
@@ -18,6 +19,8 @@ class ContentViewModel: ObservableObject {
     @Published var errorMessage = ""
     @Published var showingSettings = false
     @Published var showingConversionMenu: UUID?
+    @Published var isDragging = false
+    @Published var draggedFile: FileItem?
     
     private var cancellables = Set<AnyCancellable>()
     private var validationTimer: Timer?
@@ -25,6 +28,9 @@ class ContentViewModel: ObservableObject {
     init() {
         setupBindings()
         setupFileValidation()
+        
+        // Clean up any old temporary drag files on startup
+        DropUtility.cleanupTempDragFiles()
     }
     
     deinit {
@@ -128,7 +134,29 @@ class ContentViewModel: ObservableObject {
     func hideSettings() {
         showingSettings = false
     }
-
+    
+    // MARK: - Drag Out Support
+    
+    func startDragging(_ file: FileItem) {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isDragging = true
+            draggedFile = file
+        }
+    }
+    
+    func endDragging() {
+        withAnimation(.easeInOut(duration: 0.2)) {
+            isDragging = false
+            draggedFile = nil
+        }
+    }
+    
+    func handleDragOutCompleted(_ file: FileItem, to destination: URL?) {
+        endDragging()
+        
+        // Automatically remove the file from the dropzone after successful drag out
+        removeFile(file)
+    }
     
     // MARK: - Computed Properties
     
@@ -169,6 +197,8 @@ class ContentViewModel: ObservableObject {
         validationTimer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
             Task { @MainActor in
                 self?.validateFiles()
+                // Also clean up old temporary drag files periodically
+                DropUtility.cleanupTempDragFiles()
             }
         }
         
@@ -177,6 +207,8 @@ class ContentViewModel: ObservableObject {
             .sink { [weak self] _ in
                 Task { @MainActor in
                     self?.validateFiles()
+                    // Clean up drag files when app becomes active
+                    DropUtility.cleanupTempDragFiles()
                 }
             }
             .store(in: &cancellables)
