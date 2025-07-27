@@ -49,6 +49,20 @@ class NotchViewModel: NSObject, ObservableObject {
         self.inset = inset
         super.init()
         setupCancellables()    // Set up event monitoring subscriptions
+        
+        if isRunningUITests() {
+            DispatchQueue.main.async {
+                self.notchOpen(.boot)
+            }
+        }
+    }
+    
+    /**
+     * Detect if the app is running in a UI test environment
+     * This allows us to modify behavior specifically for UI tests
+     */
+    private func isRunningUITests() -> Bool {
+        ProcessInfo.processInfo.environment["UI_TESTING"] == "true"
     }
 
     deinit {
