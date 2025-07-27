@@ -41,7 +41,8 @@ struct DropUtility {
         // Register the file URL for dragging with the original filename
         provider.registerFileRepresentation(
             forTypeIdentifier: "public.file-url",
-            fileOptions: .openInPlace, visibility: .all
+            fileOptions: .openInPlace,
+            visibility: .all
         ) { completion in
             // Create a temporary file with the original name for dragging
             let tempDragURL = createTempFileForDrag(fileItem: fileItem)
@@ -106,7 +107,7 @@ struct DropUtility {
      * Creates multiple NSItemProviders for dragging multiple files
      */
     static func createDragProviders(for fileItems: [FileItem]) -> [NSItemProvider] {
-        return fileItems.map { createDragProvider(for: $0) }
+        fileItems.map { createDragProvider(for: $0) }
     }
     
     /**
