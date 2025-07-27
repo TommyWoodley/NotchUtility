@@ -15,15 +15,17 @@ struct NotchUtilityTests {
     
     @Test("FileItem initialization")
     func testFileItemInitialization() async throws {
-        let url = URL(fileURLWithPath: "/tmp/test.pdf")
+        let uniqueId = UUID().uuidString
+        let fileName = "test_\(uniqueId).pdf"
+        let url = URL(fileURLWithPath: "/tmp/\(fileName)")
         let fileItem = FileItem(
-            name: "test.pdf",
+            name: fileName,
             path: url,
             type: .document,
             size: 1024
         )
         
-        #expect(fileItem.name == "test.pdf")
+        #expect(fileItem.name == fileName)
         #expect(fileItem.path == url)
         #expect(fileItem.type == .document)
         #expect(fileItem.size == 1024)
@@ -46,9 +48,11 @@ struct NotchUtilityTests {
     
     @Test("FileItem formatted size")
     func testFileItemFormattedSize() async throws {
+        let uniqueId = UUID().uuidString
+        let fileName = "test_\(uniqueId).txt"
         let fileItem = FileItem(
-            name: "test.txt",
-            path: URL(fileURLWithPath: "/tmp/test.txt"),
+            name: fileName,
+            path: URL(fileURLWithPath: "/tmp/\(fileName)"),
             type: .document,
             size: 1024
         )
@@ -58,9 +62,11 @@ struct NotchUtilityTests {
     
     @Test("FileItem file extension")
     func testFileItemExtension() async throws {
+        let uniqueId = UUID().uuidString
+        let fileName = "test_\(uniqueId).PDF"
         let fileItem = FileItem(
-            name: "test.PDF",
-            path: URL(fileURLWithPath: "/tmp/test.PDF"),
+            name: fileName,
+            path: URL(fileURLWithPath: "/tmp/\(fileName)"),
             type: .document,
             size: 1024
         )

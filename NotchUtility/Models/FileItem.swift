@@ -107,8 +107,18 @@ enum FileType: String, CaseIterable, Codable {
 // MARK: - Document Conversion Support
 
 enum ConversionFormat: String, CaseIterable, Equatable, Hashable, Identifiable {
+    // Image formats
     case jpeg = "jpg"
     case png = "png"
+    case tiff = "tiff"
+    case bmp = "bmp"
+    case gif = "gif"
+    case webp = "webp"
+    
+    // Document formats
+    case pdf = "pdf"
+    case txt = "txt"
+    case rtf = "rtf"
     
     var id: String { rawValue }
     
@@ -120,12 +130,42 @@ enum ConversionFormat: String, CaseIterable, Equatable, Hashable, Identifiable {
         switch self {
         case .jpeg: return "JPEG"
         case .png: return "PNG"
+        case .tiff: return "TIFF"
+        case .bmp: return "BMP"
+        case .gif: return "GIF"
+        case .webp: return "WebP"
+        case .pdf: return "PDF"
+        case .txt: return "Plain Text"
+        case .rtf: return "Rich Text"
         }
     }
     
     var systemIcon: String {
         switch self {
-        case .jpeg, .png: return "photo"
+        case .jpeg, .png, .tiff, .bmp, .gif, .webp: 
+            return "photo"
+        case .pdf: 
+            return "doc.text"
+        case .txt, .rtf: 
+            return "doc.plaintext"
+        }
+    }
+    
+    var isImageFormat: Bool {
+        switch self {
+        case .jpeg, .png, .tiff, .bmp, .gif, .webp:
+            return true
+        case .pdf, .txt, .rtf:
+            return false
+        }
+    }
+    
+    var isDocumentFormat: Bool {
+        switch self {
+        case .pdf, .txt, .rtf:
+            return true
+        case .jpeg, .png, .tiff, .bmp, .gif, .webp:
+            return false
         }
     }
     
@@ -133,10 +173,32 @@ enum ConversionFormat: String, CaseIterable, Equatable, Hashable, Identifiable {
         let ext = fileExtension.lowercased()
         
         switch ext {
+        // Image to image conversions
         case "jpg", "jpeg":
-            return [.png]
+            return [.png, .tiff, .bmp, .gif, .pdf]
         case "png":
-            return [.jpeg]
+            return [.jpeg, .tiff, .bmp, .gif, .pdf]
+        case "tiff", "tif":
+            return [.jpeg, .png, .bmp, .gif, .pdf]
+        case "bmp":
+            return [.jpeg, .png, .tiff, .gif, .pdf]
+        case "gif":
+            return [.jpeg, .png, .tiff, .bmp, .pdf]
+        case "webp":
+            return [.jpeg, .png, .tiff, .bmp, .gif, .pdf]
+            
+        // Document conversions
+        case "txt":
+            return [.rtf, .pdf]
+        case "rtf":
+            return [.txt, .pdf]
+        case "pdf":
+            return []
+            
+        // Other document formats to basic formats
+        case "doc":
+            return [.txt, .rtf, .pdf]
+            
         default:
             return []
         }
