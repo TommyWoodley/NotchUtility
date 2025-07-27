@@ -18,6 +18,7 @@ enum FileAction {
 struct CompactFileItemView: View {
     let file: FileItem
     let isConverting: Bool
+    let isDragging: Bool
     let onAction: (FileAction, FileItem) -> Void
     
     @State private var isHovered = false
@@ -41,7 +42,7 @@ struct CompactFileItemView: View {
                 .frame(width: 50, height: 50)
                 .background(Color(nsColor: .controlBackgroundColor))
                 .cornerRadius(4)
-                .opacity(isConverting ? 0.6 : 1.0)
+                .opacity(isConverting || isDragging ? 0.6 : 1.0)
                 
                 // Conversion progress overlay
                 if isConverting {
@@ -54,7 +55,7 @@ struct CompactFileItemView: View {
                 .font(.caption2)
                 .lineLimit(1)
                 .foregroundColor(.primary)
-                .opacity(isConverting ? 0.6 : 1.0)
+                .opacity(isConverting ? 0.6 : (isDragging ? 0.5 : 1.0))
         }
         .frame(width: 50, height: 70)
         .background(
@@ -121,7 +122,7 @@ struct CompactFileItemView: View {
 // MARK: - Preview Components
 
 #Preview("File Item - PDF") {
-    CompactFileItemView(file: createMockFile(name: "Document.pdf", type: .document), isConverting: false) { action, file in
+    CompactFileItemView(file: createMockFile(name: "Document.pdf", type: .document), isConverting: false, isDragging: false) { action, file in
         print("Action: \(action) on file: \(file.name)")
     }
     .padding()
@@ -130,7 +131,7 @@ struct CompactFileItemView: View {
 }
 
 #Preview("File Item - Image") {
-    CompactFileItemView(file: createMockFile(name: "Photo.jpg", type: .image), isConverting: false) { action, file in
+    CompactFileItemView(file: createMockFile(name: "Photo.jpg", type: .image), isConverting: false, isDragging: false) { action, file in
         print("Action: \(action) on file: \(file.name)")
     }
     .padding()
@@ -141,7 +142,8 @@ struct CompactFileItemView: View {
 #Preview("File Item - Converting") {
     CompactFileItemView(
         file: createMockFile(name: "Photo.jpg", type: .image),
-        isConverting: true
+        isConverting: true,
+        isDragging: false
     ) { action, file in
         print("Action: \(action) on file: \(file.name)")
     }
@@ -151,7 +153,7 @@ struct CompactFileItemView: View {
 }
 
 #Preview("File Item - Document") {
-    CompactFileItemView(file: createMockFile(name: "Report.docx", type: .document), isConverting: false) { action, file in
+    CompactFileItemView(file: createMockFile(name: "Report.docx", type: .document), isConverting: false, isDragging: false) { action, file in
         print("Action: \(action) on file: \(file.name)")
     }
     .padding()
@@ -160,7 +162,7 @@ struct CompactFileItemView: View {
 }
 
 #Preview("File Item - Archive") {
-    CompactFileItemView(file: createMockFile(name: "Archive.zip", type: .archive), isConverting: false) { action, file in
+    CompactFileItemView(file: createMockFile(name: "Archive.zip", type: .archive), isConverting: false, isDragging: false) { action, file in
         print("Action: \(action) on file: \(file.name)")
     }
     .padding()
@@ -169,7 +171,7 @@ struct CompactFileItemView: View {
 }
 
 #Preview("File Item - Long Name") {
-    CompactFileItemView(file: createMockFile(name: "Very Long File Name That Should Be Truncated.pdf", type: .document), isConverting: false) { action, file in
+    CompactFileItemView(file: createMockFile(name: "Very Long File Name That Should Be Truncated.pdf", type: .document), isConverting: false, isDragging: false) { action, file in
         print("Action: \(action) on file: \(file.name)")
     }
     .padding()
@@ -182,7 +184,7 @@ struct CompactFileItemView: View {
         GridItem(.adaptive(minimum: 30, maximum: 40), spacing: 6)
     ], spacing: 6) {
         ForEach(createMockFiles()) { file in
-            CompactFileItemView(file: file, isConverting: false) { action, file in
+            CompactFileItemView(file: file, isConverting: false, isDragging: false) { action, file in
                 print("Action: \(action) on file: \(file.name)")
             }
         }

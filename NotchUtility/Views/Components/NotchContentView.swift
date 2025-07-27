@@ -93,10 +93,23 @@ struct NotchContentView: View {
                 ForEach(vm.contentViewModel.storageManager.storedFiles.prefix(8)) { file in
                     CompactFileItemView(
                         file: file,
-                        isConverting: vm.contentViewModel.isConverting(file)
+                        isConverting: vm.contentViewModel.isConverting(file),
+                        isDragging: vm.contentViewModel.isDragging && vm.contentViewModel.draggedFile?.id == file.id
                     ) { action, file in
                         handleFileAction(action, file)
                     }
+                    .dragOut(
+                        file: file,
+                        onDragStarted: { file in
+                            vm.contentViewModel.startDragging(file)
+                        },
+                        onDragEnded: {
+                            vm.contentViewModel.endDragging()
+                        },
+                        onDragCompleted: { file, destination in
+                            vm.contentViewModel.handleDragOutCompleted(file, to: destination)
+                        }
+                    )
                 }
                 
                 if vm.contentViewModel.storageManager.storedFiles.count > 8 {
@@ -289,6 +302,16 @@ private class MockPreviewContentViewModel: ContentViewModel {
     
     override func isConverting(_ fileItem: FileItem) -> Bool {
         false
+    }
+    
+    override var isDragging: Bool {
+        get { false }
+        set { }
+    }
+    
+    override var draggedFile: FileItem? {
+        get { nil }
+        set { }
     }
 }
 
