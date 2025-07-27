@@ -38,7 +38,7 @@ struct FileConversionPDFTests {
             let fileType: NSBitmapImageRep.FileType
             let properties: [NSBitmapImageRep.PropertyKey: Any]
             
-            if extension.lowercased() == "png" {
+            if `extension`.lowercased() == "png" {
                 fileType = .png
                 properties = [:]
             } else {

@@ -13,9 +13,11 @@ struct FileItemTests {
     
     @Test("FileItem Codable conformance")
     func testFileItemCodable() async throws {
+        let uniqueId = UUID().uuidString
+        let fileName = "test_\(uniqueId).pdf"
         let originalItem = FileItem(
-            name: "test.pdf",
-            path: URL(fileURLWithPath: "/tmp/test.pdf"),
+            name: fileName,
+            path: URL(fileURLWithPath: "/tmp/\(fileName)"),
             type: .document,
             size: 1024
         )

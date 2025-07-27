@@ -55,13 +55,18 @@ class FileConversionService {
     // MARK: - Image Conversions
     
     private func convertImageFile(fileItem: FileItem, to format: ConversionFormat) throws -> ConversionResult {
-        guard let image = NSImage(contentsOf: fileItem.path) else {
-            throw ConversionError.invalidSourceFile
-        }
-        
-        guard let tiffData = image.tiffRepresentation,
-              let bitmapRep = NSBitmapImageRep(data: tiffData) else {
-            throw ConversionError.conversionFailed
+        // Load and process image (must be on main thread)
+        let (_, bitmapRep) = try DispatchQueue.main.sync {
+            guard let image = NSImage(contentsOf: fileItem.path) else {
+                throw ConversionError.invalidSourceFile
+            }
+            
+            guard let tiffData = image.tiffRepresentation,
+                  let bitmapRep = NSBitmapImageRep(data: tiffData) else {
+                throw ConversionError.conversionFailed
+            }
+            
+            return (tiffData, bitmapRep)
         }
         
         let convertedData = try generateImageData(from: bitmapRep, format: format)
@@ -106,20 +111,25 @@ class FileConversionService {
     }
     
     private func convertImageToPDF(fileItem: FileItem) throws -> ConversionResult {
-        guard let image = NSImage(contentsOf: fileItem.path) else {
-            throw ConversionError.invalidSourceFile
-        }
-        
-        let pdfDocument = PDFDocument()
-        let page = PDFPage(image: image)
-        guard let pdfPage = page else {
-            throw ConversionError.conversionFailed
-        }
-        
-        pdfDocument.insert(pdfPage, at: 0)
-        
-        guard let pdfData = pdfDocument.dataRepresentation() else {
-            throw ConversionError.conversionFailed
+        // Create PDF from image (must be on main thread)
+        let pdfData = try DispatchQueue.main.sync {
+            guard let image = NSImage(contentsOf: fileItem.path) else {
+                throw ConversionError.invalidSourceFile
+            }
+            
+            let pdfDocument = PDFDocument()
+            let page = PDFPage(image: image)
+            guard let pdfPage = page else {
+                throw ConversionError.conversionFailed
+            }
+            
+            pdfDocument.insert(pdfPage, at: 0)
+            
+            guard let pdfData = pdfDocument.dataRepresentation() else {
+                throw ConversionError.conversionFailed
+            }
+            
+            return pdfData
         }
         
         let newFileName = generateNewFileName(from: fileItem.name, to: .pdf)
@@ -145,23 +155,28 @@ class FileConversionService {
         }
         
         let pageBounds = firstPage.bounds(for: .mediaBox)
-        let image = NSImage(size: pageBounds.size)
         
-        image.lockFocus()
-        if let context = NSGraphicsContext.current?.cgContext {
-            context.saveGState()
-            context.translateBy(x: 0, y: pageBounds.size.height)
-            context.scaleBy(x: 1.0, y: -1.0)
-            firstPage.draw(with: .mediaBox, to: context)
-            context.restoreGState()
-        }
-        
-        image.unlockFocus()
-        
-        // Convert NSImage to the target format
-        guard let tiffData = image.tiffRepresentation,
-              let bitmapRep = NSBitmapImageRep(data: tiffData) else {
-            throw ConversionError.conversionFailed
+        // Create image and draw PDF content (must be on main thread)
+        let (_, bitmapRep) = try DispatchQueue.main.sync {
+            let image = NSImage(size: pageBounds.size)
+            
+            image.lockFocus()
+            if let context = NSGraphicsContext.current?.cgContext {
+                context.saveGState()
+                context.translateBy(x: 0, y: pageBounds.size.height)
+                context.scaleBy(x: 1.0, y: -1.0)
+                firstPage.draw(with: .mediaBox, to: context)
+                context.restoreGState()
+            }
+            image.unlockFocus()
+            
+            // Convert NSImage to the target format
+            guard let tiffData = image.tiffRepresentation,
+                  let bitmapRep = NSBitmapImageRep(data: tiffData) else {
+                throw ConversionError.conversionFailed
+            }
+            
+            return (tiffData, bitmapRep)
         }
         
         let convertedData = try generateImageData(from: bitmapRep, format: format)
@@ -270,7 +285,6 @@ class FileConversionService {
         }
         
         // Create PDF from text
-        let pdfDocument = PDFDocument()
         let pageSize = CGSize(width: 612, height: 792) // Standard letter size
         
         let attributedString = NSAttributedString(
@@ -281,11 +295,12 @@ class FileConversionService {
             ]
         )
         
-        // Create PDF page with text
-        let textView = NSTextView(frame: CGRect(origin: .zero, size: pageSize))
-        textView.textStorage?.setAttributedString(attributedString)
-        
-        let pdfData = textView.dataWithPDF(inside: textView.bounds)
+        // Create PDF page with text (must be on main thread)
+        let pdfData = DispatchQueue.main.sync {
+            let textView = NSTextView(frame: CGRect(origin: .zero, size: pageSize))
+            textView.textStorage?.setAttributedString(attributedString)
+            return textView.dataWithPDF(inside: textView.bounds)
+        }
         
         let newFileName = generateNewFileName(from: fileItem.name, to: .pdf)
         
