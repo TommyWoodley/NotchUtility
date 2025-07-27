@@ -10,11 +10,13 @@ import SwiftUI
 enum NotchTab: String, CaseIterable {
     case files = "Files"
     case clipboard = "Clipboard"
+    case tools = "Tools"
     
     var icon: String {
         switch self {
         case .files: return "tray.fill"
         case .clipboard: return "document.on.clipboard"
+        case .tools: return "wrench"
         }
     }
 }

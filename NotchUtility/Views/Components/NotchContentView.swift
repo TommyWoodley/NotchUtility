@@ -19,6 +19,8 @@ struct NotchContentView: View {
                 filesContent
             case .clipboard:
                 clipboardContent
+            case .tools:
+                toolsContent
             }
         }
         .dropZone(
@@ -79,6 +81,10 @@ struct NotchContentView: View {
         }
     }
     
+    private var toolsContent: some View {
+        compactToolsGrid
+    }
+    
     private var compactDropZone: some View {
         DropZoneView(style: .standard, isActive: vm.contentViewModel.isDropTargetActive)
             .frame(height: 80)
@@ -119,6 +125,10 @@ struct NotchContentView: View {
             .padding(.horizontal, 4)
         }
         .frame(maxHeight: 80)
+    }
+    
+    private var compactToolsGrid: some View {
+        ToolsView()
     }
     
     private var moreFilesIndicator: some View {
