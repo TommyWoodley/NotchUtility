@@ -70,6 +70,17 @@ jobs:
             ONLY_ACTIVE_ARCH=NO \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
             -resultBundlePath TestResults.xcresult
+            
+      - name: Run UI tests
+        run: |
+          xcodebuild test \
+            -project NotchUtility.xcodeproj \
+            -scheme NotchUtility \
+            -destination '${{ matrix.destination }}' \
+            -only-testing:NotchUtilityUITests \
+            ONLY_ACTIVE_ARCH=NO \
+            SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
+            -resultBundlePath UITestResults.xcresult
         
   #     - name: Upload test results
   #       if: failure()
