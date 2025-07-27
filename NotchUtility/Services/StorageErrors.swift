@@ -30,7 +30,6 @@ enum ConversionError: LocalizedError {
     case unsupportedFormat
     case invalidSourceFile
     case conversionFailed
-    case sameFormat
     
     var errorDescription: String? {
         switch self {
@@ -42,8 +41,6 @@ enum ConversionError: LocalizedError {
             return "Source file is invalid or corrupted."
         case .conversionFailed:
             return "Conversion failed. Please try again."
-        case .sameFormat:
-            return "File is already in the target format."
         }
     }
 } 
