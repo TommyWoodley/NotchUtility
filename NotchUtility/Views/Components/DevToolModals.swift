@@ -45,6 +45,8 @@ struct ToolModalView: View {
                 switch tool {
                 case .base64:
                     Base64Tool()
+                case .formatter:
+                    FormatterTool()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -244,12 +246,30 @@ extension Base64ToolService: ConversionService {
     typealias ConversionError = Base64Error
 }
 
+// MARK: - Formatter Protocol Conformances
+extension FormatterMode: ConversionMode {}
+
+extension FormatterService: ConversionService {
+    typealias Mode = FormatterMode
+    typealias ConversionError = FormatterError
+}
+
 // MARK: - Base64 Tool
 struct Base64Tool: View {
     var body: some View {
         ConversionToolView(
             defaultMode: Base64Mode.encode,
             service: Base64ToolService()
+        )
+    }
+}
+
+// MARK: - Formatter Tool
+struct FormatterTool: View {
+    var body: some View {
+        ConversionToolView(
+            defaultMode: FormatterMode.json,
+            service: FormatterService()
         )
     }
 }
@@ -294,6 +314,25 @@ struct PlaceholderTool: View {
 
 #Preview("Base64 Tool - Light Mode") {
     Base64Tool()
+        .background(Color(nsColor: .windowBackgroundColor))
+        .preferredColorScheme(.light)
+        .frame(width: 600, height: 500)
+}
+
+#Preview("Formatter Tool Modal") {
+    ToolModalView(tool: .formatter)
+        .preferredColorScheme(.dark)
+}
+
+#Preview("Formatter Tool - Standalone") {
+    FormatterTool()
+        .background(Color(nsColor: .windowBackgroundColor))
+        .preferredColorScheme(.dark)
+        .frame(width: 600, height: 500)
+}
+
+#Preview("Formatter Tool - Light Mode") {
+    FormatterTool()
         .background(Color(nsColor: .windowBackgroundColor))
         .preferredColorScheme(.light)
         .frame(width: 600, height: 500)
