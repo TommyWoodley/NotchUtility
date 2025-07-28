@@ -19,16 +19,11 @@ NotchUtility transforms the MacBook notch from a simple design element into a fu
 
 ## 🚀 Current Features
 
-- **🎯 Notch Overlay Interface**: Floating window positioned in the notch area with smart interactions
-- **📁 Temporary File Storage**: Drag & drop files with automatic cleanup and organization
+- **📁 DropZone**: Drag & drop files with automatic cleanup and organization
+  - **🔄 File Conversion**: Convert between multiple formats with preview support
 - **📋 Clipboard Management**: History tracking with one-click copy and type detection  
-- **🔄 File Conversion**: Convert between multiple formats with preview support
-- **🖥️ Multi-Display Support**: Automatic positioning across different screen configurations
-
-### Supported File Conversions
-**Image Formats**: JPEG, PNG, TIFF, BMP, GIF, WebP ↔ Any other image format + PDF  
-**Document Formats**: PDF ↔ JPEG/PNG/TIFF | TXT ↔ RTF ↔ PDF  
-**Advanced**: DOC/DOCX/Pages → TXT/RTF/PDF
+- **Developer Tools**: A series of quick access tools designed for developers
+  - Base64 Encoding/Decoding
 
 ## 🛠 Technical Requirements
 

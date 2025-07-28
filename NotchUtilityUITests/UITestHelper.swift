@@ -8,26 +8,27 @@
 import Foundation
 import XCTest
 
-final class UITestHelper {
-    
-    // MARK: - Test Configuration Helpers
-    
+// MARK: - Test Setup
+extension XCUIApplication {
     /**
      * Configure the app for UI testing with proper environment variables and arguments
      */
-    static func configureAppForUITesting(_ app: XCUIApplication) {
+    func configureForUITesting() {
         // Set environment variables to ensure UI test detection works
-        app.launchEnvironment["UI_TESTING"] = "true"
-        app.launchArguments.append("UI_TESTING")
-        
+        launchEnvironment["UI_TESTING"] = "true"
+        launchArguments.append("UI_TESTING")
     }
-    
-    static func clickButton(_ app: XCUIApplication, name: String) {
-        let toolsButton = app.buttons[name]
+}
+
+// MARK: Interactions
+
+extension XCUIApplication {
+    func clickButton(named name: String) {
+        let toolsButton = buttons[name]
         
         if !toolsButton.exists {
             // Collect debug information about available buttons
-            let availableButtons = app.buttons.allElementsBoundByIndex.compactMap { button in
+            let availableButtons = buttons.allElementsBoundByIndex.compactMap { button in
                 var buttonInfo: [String] = []
                 
                 if !button.identifier.isEmpty {
@@ -43,8 +44,8 @@ final class UITestHelper {
                 return buttonInfo.isEmpty ? nil : "[\(buttonInfo.joined(separator: ", "))]"
             }
             
-            let debugInfo = availableButtons.isEmpty 
-                ? "No buttons found" 
+            let debugInfo = availableButtons.isEmpty
+                ? "No buttons found"
                 : availableButtons.joined(separator: ", ")
             
             XCTFail("\(name) button should exist. Available buttons: \(debugInfo)")
