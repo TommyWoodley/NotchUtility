@@ -175,7 +175,10 @@ struct ConversionToolView<Mode: ConversionMode, Service: ConversionService>: Vie
                     }
                 }
 
-                TextEditor(text: .constant(outputText))
+                TextEditor(text: Binding(
+                        get: { outputText },
+                        set: { _ in }
+                    ))
                     .font(.system(.body, design: .monospaced))
                     .scrollContentBackground(.hidden)
                     .background(
@@ -187,7 +190,8 @@ struct ConversionToolView<Mode: ConversionMode, Service: ConversionService>: Vie
                             )
                     )
                     .frame(minHeight: 100, maxHeight: 120)
-                    .disabled(true)
+                    .allowsHitTesting(true) // Enable selection
+                    .disabled(false) // Allow interaction for selection
             }
         }
         .padding(20)
