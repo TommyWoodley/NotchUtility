@@ -22,19 +22,6 @@ final class NotchUtilityUITests: XCTestCase {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    // MARK: - Test Configuration Helpers
-    
-    /**
-     * Configure the app for UI testing with proper environment variables and arguments
-     */
-    func configureAppForUITesting(_ app: XCUIApplication) {
-        // Set environment variables to ensure UI test detection works
-        app.launchEnvironment["UI_TESTING"] = "true"
-        app.launchArguments.append("UI_TESTING")
-        
-    }
-
-
     // MARK: - UI Tests
     
     @MainActor
@@ -44,7 +31,7 @@ final class NotchUtilityUITests: XCTestCase {
         // the isRunningUITests() detection in NotchViewModel
         
         let app = XCUIApplication()
-        configureAppForUITesting(app)
+        UITestHelper.configureAppForUITesting(app)
         app.launch()
         
         Thread.sleep(forTimeInterval: 1.0)
@@ -54,17 +41,8 @@ final class NotchUtilityUITests: XCTestCase {
         
         // Test basic interactions with the notch interface
         
-        let clipboardButton = app.buttons["document.on.clipboard"]
-        XCTAssertTrue(clipboardButton.exists, "Clipboard button should exist")
-        
-        let dropZoneButton = app.buttons["tray.fill"]
-        XCTAssertTrue(dropZoneButton.exists, "Drop zone button should exist")
-        
-        let toolsButton = app.buttons["wrench"]
-        XCTAssert(toolsButton.exists, "Tools button should exist")
-        
-        clipboardButton.click()
-        dropZoneButton.click()
-        toolsButton.click()
+        UITestHelper.clickButton(app, name: "document.on.clipboard")
+        UITestHelper.clickButton(app, name: "tray.fill")
+        UITestHelper.clickButton(app, name: "wrench")
     }
 }
