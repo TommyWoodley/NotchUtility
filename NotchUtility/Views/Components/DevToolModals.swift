@@ -44,16 +44,213 @@ struct ToolModalView: View {
             ScrollView {
                 switch tool {
                 case .base64:
-                    PlaceholderTool(
-                        name: "JSON Formatter",
-                        description: "Format and validate JSON data"
-                    )
+                    Base64Tool()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(width: 500, height: 400)
+        .frame(width: 600, height: 450)
         .background(Color(nsColor: .windowBackgroundColor))
+    }
+}
+
+// MARK: - Conversion Tool Protocol
+protocol ConversionMode: CaseIterable, Identifiable {
+    var title: String { get }
+    var icon: String { get }
+    var inputLabel: String { get }
+    var outputLabel: String { get }
+}
+
+protocol ConversionService: ObservableObject {
+    associatedtype Mode: ConversionMode
+    associatedtype ConversionError: LocalizedError
+    
+    func convert(_ input: String, mode: Mode) -> Result<String, ConversionError>
+}
+
+// MARK: - Generic Conversion Tool View
+struct ConversionToolView<Mode: ConversionMode, Service: ConversionService>: View where Service.Mode == Mode {
+    @State private var inputText: String = ""
+    @State private var outputText: String = ""
+    @State private var mode: Mode
+    @State private var showingError: Bool = false
+    @State private var errorMessage: String = ""
+
+    @StateObject private var service: Service
+    
+    init(defaultMode: Mode, service: Service) {
+        self._mode = State(initialValue: defaultMode)
+        self._service = StateObject(wrappedValue: service)
+    }
+
+    var body: some View {
+        VStack(spacing: 16) {
+            // Mode Toggle
+            HStack {
+                ForEach(Array(Mode.allCases), id: \.id) { toggleMode in
+                    Button(
+                        action: {
+                            mode = toggleMode
+                            convertText()
+                        },
+                        label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: toggleMode.icon)
+                                    .font(.caption)
+                                Text(toggleMode.title)
+                                    .font(.callout)
+                            }
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 16)
+                            .background(
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(mode.id == toggleMode.id ? Color.accentColor : Color(nsColor: .controlBackgroundColor))
+                            )
+                            .foregroundColor(mode.id == toggleMode.id ? .white : .primary)
+                        }
+                    )
+                    .buttonStyle(PlainButtonStyle())
+                }
+
+                Spacer()
+            }
+
+            // Input Field
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(mode.inputLabel)
+                        .font(.callout)
+                        .fontWeight(.medium)
+
+                    Spacer()
+
+                    if showingError {
+                        Text(errorMessage)
+                            .font(.caption)
+                            .foregroundColor(.red)
+                    } else if !inputText.isEmpty {
+                        Button(action: clearAll) {
+                            Label("Clear", systemImage: "trash")
+                                .font(.callout)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+
+                TextEditor(text: $inputText)
+                    .font(.system(.body, design: .monospaced))
+                    .scrollContentBackground(.hidden)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(nsColor: .textBackgroundColor))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+                            )
+                    )
+                    .frame(minHeight: 100, maxHeight: 120)
+                    .onChange(of: inputText) {
+                        convertText()
+                    }
+            }
+
+            // Output Field
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(mode.outputLabel)
+                        .font(.callout)
+                        .fontWeight(.medium)
+
+                    Spacer()
+
+                    if !outputText.isEmpty {
+                        Button(action: copyOutput) {
+                            Label("Copy", systemImage: "doc.on.clipboard")
+                                .font(.callout)
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                }
+
+                TextEditor(text: .constant(outputText))
+                    .font(.system(.body, design: .monospaced))
+                    .scrollContentBackground(.hidden)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(nsColor: .controlBackgroundColor))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+                            )
+                    )
+                    .frame(minHeight: 100, maxHeight: 120)
+                    .disabled(true)
+            }
+        }
+        .padding(20)
+    }
+
+    private func convertText() {
+        showingError = false
+        errorMessage = ""
+
+        guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            outputText = ""
+            return
+        }
+
+        let result = service.convert(inputText, mode: mode)
+
+        switch result {
+        case .success(let convertedText):
+            outputText = convertedText
+        case .failure(let error):
+            outputText = ""
+            showError(error.localizedDescription)
+        }
+    }
+
+    private func showError(_ message: String) {
+        errorMessage = message
+        showingError = true
+
+        // Auto-hide error after 3 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                showingError = false
+            }
+        }
+    }
+
+    private func clearAll() {
+        inputText = ""
+        outputText = ""
+        showingError = false
+    }
+
+    private func copyOutput() {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(outputText, forType: .string)
+    }
+}
+
+// MARK: - Base64 Protocol Conformances
+extension Base64Mode: ConversionMode {}
+
+extension Base64ToolService: ConversionService {
+    typealias Mode = Base64Mode
+    typealias ConversionError = Base64Error
+}
+
+// MARK: - Base64 Tool
+struct Base64Tool: View {
+    var body: some View {
+        ConversionToolView(
+            defaultMode: Base64Mode.encode,
+            service: Base64ToolService()
+        )
     }
 }
 
@@ -89,46 +286,15 @@ struct PlaceholderTool: View {
 }
 
 #Preview("Base64 Tool - Standalone") {
-    PlaceholderTool(
-        name: "JSON Formatter",
-        description: "Format and validate JSON data"
-    )
-    .background(Color(nsColor: .windowBackgroundColor))
-    .preferredColorScheme(.dark)
-    .frame(width: 500, height: 400)
+    Base64Tool()
+        .background(Color(nsColor: .windowBackgroundColor))
+        .preferredColorScheme(.dark)
+        .frame(width: 600, height: 500)
 }
 
 #Preview("Base64 Tool - Light Mode") {
-    PlaceholderTool(
-        name: "JSON Formatter",
-        description: "Format and validate JSON data"
-    )
-    .background(Color(nsColor: .windowBackgroundColor))
-    .preferredColorScheme(.dark)
-    .frame(width: 500, height: 400)
-}
-
-#Preview("Placeholder Tool - JSON") {
-    PlaceholderTool(
-        name: "JSON Formatter",
-        description: "Format and validate JSON data"
-    )
-    .background(Color(nsColor: .windowBackgroundColor))
-    .preferredColorScheme(.dark)
-    .frame(width: 500, height: 400)
-}
-
-#Preview("Placeholder Tool - URL") {
-    PlaceholderTool(
-        name: "URL Encoder",
-        description: "Encode and decode URLs"
-    )
-    .background(Color(nsColor: .windowBackgroundColor))
-    .preferredColorScheme(.light)
-    .frame(width: 500, height: 400)
-}
-
-#Preview("Modal in Light Mode") {
-    ToolModalView(tool: .base64)
+    Base64Tool()
+        .background(Color(nsColor: .windowBackgroundColor))
         .preferredColorScheme(.light)
+        .frame(width: 600, height: 500)
 } 
