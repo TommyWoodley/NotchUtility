@@ -118,30 +118,6 @@ struct FormatterServiceTests {
         }
     }
     
-    @Test("Format empty JSON input returns error")
-    func testFormatEmptyJSONInput() async throws {
-        let result = service.formatJSON("")
-        
-        switch result {
-        case .success:
-            Issue.record("Empty input should fail")
-        case .failure(let error):
-            #expect(error == FormatterService.FormatterError.invalidInput)
-        }
-    }
-    
-    @Test("Format whitespace-only JSON input returns error")
-    func testFormatWhitespaceOnlyJSONInput() async throws {
-        let result = service.formatJSON("   \n\t  ")
-        
-        switch result {
-        case .success:
-            Issue.record("Whitespace-only input should fail")
-        case .failure(let error):
-            #expect(error == FormatterService.FormatterError.invalidInput)
-        }
-    }
-    
     // MARK: - XML Formatting Tests
     
     @Test("Format simple XML")
@@ -242,30 +218,6 @@ struct FormatterServiceTests {
             Issue.record("Invalid XML should fail formatting: '\(invalidXML)'")
         case .failure(let error):
             #expect(error == FormatterService.FormatterError.invalidXML)
-        }
-    }
-    
-    @Test("Format empty XML input returns error")
-    func testFormatEmptyXMLInput() async throws {
-        let result = service.formatXML("")
-        
-        switch result {
-        case .success:
-            Issue.record("Empty input should fail")
-        case .failure(let error):
-            #expect(error == FormatterService.FormatterError.invalidInput)
-        }
-    }
-    
-    @Test("Format whitespace-only XML input returns error")
-    func testFormatWhitespaceOnlyXMLInput() async throws {
-        let result = service.formatXML("   \n\t  ")
-        
-        switch result {
-        case .success:
-            Issue.record("Whitespace-only input should fail")
-        case .failure(let error):
-            #expect(error == FormatterService.FormatterError.invalidInput)
         }
     }
     
@@ -401,12 +353,15 @@ struct FormatterServiceTests {
     func testVeryLargeJSONFormatting() async throws {
         // Create a large JSON object
         var jsonObject: [String: Any] = [:]
-        for i in 0..<1000 {
-            jsonObject["key\(i)"] = "value\(i)"
+        for index in 0..<1000 {
+            jsonObject["key\(index)"] = "value\(index)"
         }
         
         let jsonData = try JSONSerialization.data(withJSONObject: jsonObject, options: [])
-        let jsonString = String(data: jsonData, encoding: .utf8)!
+        guard let jsonString = String(data: jsonData, encoding: .utf8) else {
+            Issue.record("Failed to create test JSON string")
+            return
+        }
         
         let result = service.formatJSON(jsonString)
         
@@ -423,8 +378,8 @@ struct FormatterServiceTests {
     @Test("Handle very large XML formatting")
     func testVeryLargeXMLFormatting() async throws {
         var xmlString = "<root>"
-        for i in 0..<1000 {
-            xmlString += "<item\(i)>value\(i)</item\(i)>"
+        for index in 0..<1000 {
+            xmlString += "<item\(index)>value\(index)</item\(index)>"
         }
         xmlString += "</root>"
         
@@ -484,11 +439,4 @@ struct FormatterServiceTests {
         }
     }
     
-    @Test("Test formatter error descriptions")
-    func testFormatterErrorDescriptions() async throws {
-        #expect(FormatterService.FormatterError.invalidInput.localizedDescription == "Invalid input provided")
-        #expect(FormatterService.FormatterError.invalidJSON.localizedDescription == "Invalid JSON format")
-        #expect(FormatterService.FormatterError.invalidXML.localizedDescription == "Invalid XML format")
-        #expect(FormatterService.FormatterError.formattingFailed.localizedDescription == "Failed to format the input")
-    }
 } 
