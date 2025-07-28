@@ -22,14 +22,16 @@ final class FeatureTests: XCTestCase {
         // the isRunningUITests() detection in NotchViewModel
         
         let app = XCUIApplication()
-        UITestHelper.configureAppForUITesting(app)
+        app.configureForUITesting()
         app.launch()
         
         Thread.sleep(forTimeInterval: 1.0)
         
-        UITestHelper.clickButton(app, name: "wrench")
-        UITestHelper.clickButton(app, name: "Base64, Encode & Decode")
-        UITestHelper.clickButton(app, name: "Close")
+        app.clickButton(named: "wrench")
+        app.clickButton(named: "Base64, Encode & Decode")
+        app.clickButton(named: "Close")
+        
+        
         
     }
 }

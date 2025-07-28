@@ -31,7 +31,7 @@ final class NotchUtilityUITests: XCTestCase {
         // the isRunningUITests() detection in NotchViewModel
         
         let app = XCUIApplication()
-        UITestHelper.configureAppForUITesting(app)
+        app.configureForUITesting()
         app.launch()
         
         Thread.sleep(forTimeInterval: 1.0)
@@ -41,8 +41,8 @@ final class NotchUtilityUITests: XCTestCase {
         
         // Test basic interactions with the notch interface
         
-        UITestHelper.clickButton(app, name: "document.on.clipboard")
-        UITestHelper.clickButton(app, name: "tray.fill")
-        UITestHelper.clickButton(app, name: "wrench")
+        app.clickButton(named: "document.on.clipboard")
+        app.clickButton(named: "tray.fill")
+        app.clickButton(named: "wrench")
     }
 }
