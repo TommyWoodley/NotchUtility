@@ -3,12 +3,6 @@
 ### What does this PR do?
 <!-- Briefly describe what changes this PR introduces -->
 
-### Why is this change needed?
-<!-- Explain the motivation behind this change -->
-
-### How was this tested?
-<!-- Describe how you tested these changes -->
-
 ## ✅ Checklist
 
 ### Code Quality / Testing
