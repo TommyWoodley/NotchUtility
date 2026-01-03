@@ -87,13 +87,23 @@ jobs:
         if: contains(matrix.destination, 'arm64')
         run: gem install slather
         
+      - name: Generate coverage report
+        if: contains(matrix.destination, 'arm64')
+        run: |
+          slather coverage \
+            --cobertura-xml \
+            --scheme NotchUtility \
+            --arch arm64 \
+            --source-directory NotchUtility \
+            --ignore "NotchUtilityTests/*" \
+            --ignore "NotchUtilityUITests/*" \
+            --output-directory coverage \
+            NotchUtility.xcodeproj
+            
       - name: Upload coverage to Coveralls
         if: contains(matrix.destination, 'arm64')
-        env:
-          COVERALLS_REPO_TOKEN: ${{ github.token }}
-          CI_NAME: github-actions
-          CI_BUILD_NUMBER: ${{ github.run_id }}
-          CI_BRANCH: ${{ github.head_ref || github.ref_name }}
-          CI_PULL_REQUEST: ${{ github.event.pull_request.number }}
-        run: slather coverage
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ github.token }}
+          file: coverage/cobertura.xml
         
