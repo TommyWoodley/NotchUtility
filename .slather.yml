@@ -1,6 +1,7 @@
 coverage_service: coveralls
 xcodeproj: NotchUtility.xcodeproj
 scheme: NotchUtility
+arch: arm64
 source_directory: NotchUtility
 output_directory: coverage
 ignore:
