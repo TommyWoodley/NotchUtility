@@ -81,50 +81,37 @@ jobs:
             ONLY_ACTIVE_ARCH=NO \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
             -resultBundlePath UITestResults.xcresult
-        
-  #     - name: Upload test results
-  #       if: failure()
-  #       uses: actions/upload-artifact@v4.6.2
-  #       with:
-  #         name: test-results-${{ matrix.destination }}
-  #         path: |
-  #           NotchUtility/TestResults.xcresult
-  #         retention-days: 7
 
-  # coverage:
-  #   name: Code Coverage
-  #   runs-on: macos-15
-  #   needs: test
-  #   if: github.event_name == 'pull_request'
+  coverage:
+    name: Code Coverage
+    runs-on: macos-15
+    needs: test
     
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4.2.2
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
         
-  #     - name: Setup Xcode
-  #       uses: maxim-lobanov/setup-xcode@v2
-  #       with:
-  #         xcode-version: '16.2'
-          
-  #     - name: Run tests with coverage
-  #       run: |
-  #         xcodebuild test \
-  #           -project NotchUtility.xcodeproj \
-  #           -scheme NotchUtility \
-  #           -destination 'platform=macOS,arch=arm64' \
-  #           -enableCodeCoverage YES \
-  #           CODE_SIGN_IDENTITY="" \
-  #           CODE_SIGNING_REQUIRED=NO \
-  #           SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
-  #           -resultBundlePath TestResults-Coverage.xcresult
+      - name: Run tests with coverage
+        run: |
+          xcodebuild test \
+            -project NotchUtility.xcodeproj \
+            -scheme NotchUtility \
+            -destination 'platform=macOS,arch=arm64' \
+            -only-testing:NotchUtilityTests \
+            -enableCodeCoverage YES \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            -resultBundlePath TestResults-Coverage.xcresult
             
-  #     - name: Generate coverage report
-  #       run: |
-  #         xcrun xccov view --report --json TestResults-Coverage.xcresult > coverage.json
-          
-  #     - name: Upload coverage reports
-  #       uses: actions/upload-artifact@v4.6.2
-  #       with:
-  #         name: coverage-report
-  #         path: NotchUtility/coverage.json
-  #         retention-days: 30 
+      - name: Install Slather
+        run: gem install slather
+        
+      - name: Generate and upload coverage to Coveralls
+        env:
+          COVERALLS_REPO_TOKEN: ${{ github.token }}
+          CI_NAME: github-actions
+          CI_BUILD_NUMBER: ${{ github.run_id }}
+          CI_BRANCH: ${{ github.head_ref || github.ref_name }}
+          CI_PULL_REQUEST: ${{ github.event.pull_request.number }}
+        run: slather coverage
+        

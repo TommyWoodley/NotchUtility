@@ -1,0 +1,9 @@
+coverage_service: coveralls
+xcodeproj: NotchUtility.xcodeproj
+scheme: NotchUtility
+source_directory: NotchUtility
+output_directory: coverage
+ignore:
+  - NotchUtilityTests/*
+  - NotchUtilityUITests/*
+
