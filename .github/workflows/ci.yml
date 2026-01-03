@@ -67,6 +67,7 @@ jobs:
             -scheme NotchUtility \
             -destination '${{ matrix.destination }}' \
             -only-testing:NotchUtilityTests \
+            -enableCodeCoverage YES \
             ONLY_ACTIVE_ARCH=NO \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
             -resultBundlePath TestResults.xcresult
@@ -81,32 +82,13 @@ jobs:
             ONLY_ACTIVE_ARCH=NO \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
             -resultBundlePath UITestResults.xcresult
-
-  coverage:
-    name: Code Coverage
-    runs-on: macos-15
-    needs: test
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Run tests with coverage
-        run: |
-          xcodebuild test \
-            -project NotchUtility.xcodeproj \
-            -scheme NotchUtility \
-            -destination 'platform=macOS,arch=arm64' \
-            -only-testing:NotchUtilityTests \
-            -enableCodeCoverage YES \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            -resultBundlePath TestResults-Coverage.xcresult
             
       - name: Install Slather
+        if: contains(matrix.destination, 'arm64')
         run: gem install slather
         
-      - name: Generate and upload coverage to Coveralls
+      - name: Upload coverage to Coveralls
+        if: contains(matrix.destination, 'arm64')
         env:
           COVERALLS_REPO_TOKEN: ${{ github.token }}
           CI_NAME: github-actions
