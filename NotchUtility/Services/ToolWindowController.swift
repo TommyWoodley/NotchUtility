@@ -115,6 +115,10 @@ struct ToolWindowContentView: View {
                 switch tool {
                 case .base64:
                     Base64Tool()
+                case .jsonFormatter:
+                    JSONFormatterTool()
+                case .xmlFormatter:
+                    XMLFormatterTool()
                 }
             }
             .scrollContentBackground(.hidden)
