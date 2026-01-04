@@ -1,6 +1,7 @@
 # NotchUtility
 
 [![CI](https://github.com/TommyWoodley/NotchUtility/actions/workflows/ci.yml/badge.svg)](https://github.com/TommyWoodley/NotchUtility/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/TommyWoodley/NotchUtility/badge.svg)](https://coveralls.io/github/TommyWoodley/NotchUtility)
 
 A SwiftUI application that transforms your MacBook's notch into a productive workspace featuring temporary file storage and clipboard management.
 

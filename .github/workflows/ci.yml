@@ -68,6 +68,7 @@ jobs:
             -scheme NotchUtility \
             -destination '${{ matrix.destination }}' \
             -only-testing:NotchUtilityTests \
+            -enableCodeCoverage YES \
             ONLY_ACTIVE_ARCH=NO \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
             -resultBundlePath TestResults.xcresult
@@ -82,50 +83,28 @@ jobs:
             ONLY_ACTIVE_ARCH=NO \
             SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
             -resultBundlePath UITestResults.xcresult
-        
-  #     - name: Upload test results
-  #       if: failure()
-  #       uses: actions/upload-artifact@v4.6.2
-  #       with:
-  #         name: test-results-${{ matrix.destination }}
-  #         path: |
-  #           NotchUtility/TestResults.xcresult
-  #         retention-days: 7
-
-  # coverage:
-  #   name: Code Coverage
-  #   runs-on: macos-15
-  #   needs: test
-  #   if: github.event_name == 'pull_request'
-    
-  #   steps:
-  #     - name: Checkout code
-  #       uses: actions/checkout@v4.2.2
-        
-  #     - name: Setup Xcode
-  #       uses: maxim-lobanov/setup-xcode@v2
-  #       with:
-  #         xcode-version: '16.2'
-          
-  #     - name: Run tests with coverage
-  #       run: |
-  #         xcodebuild test \
-  #           -project NotchUtility.xcodeproj \
-  #           -scheme NotchUtility \
-  #           -destination 'platform=macOS,arch=arm64' \
-  #           -enableCodeCoverage YES \
-  #           CODE_SIGN_IDENTITY="" \
-  #           CODE_SIGNING_REQUIRED=NO \
-  #           SWIFT_TREAT_WARNINGS_AS_ERRORS=YES \
-  #           -resultBundlePath TestResults-Coverage.xcresult
             
-  #     - name: Generate coverage report
-  #       run: |
-  #         xcrun xccov view --report --json TestResults-Coverage.xcresult > coverage.json
-          
-  #     - name: Upload coverage reports
-  #       uses: actions/upload-artifact@v4.6.2
-  #       with:
-  #         name: coverage-report
-  #         path: NotchUtility/coverage.json
-  #         retention-days: 30 
+      - name: Install Slather
+        if: contains(matrix.destination, 'arm64')
+        run: gem install slather
+        
+      - name: Generate coverage report
+        if: contains(matrix.destination, 'arm64')
+        run: |
+          slather coverage \
+            --cobertura-xml \
+            --scheme NotchUtility \
+            --arch arm64 \
+            --source-directory NotchUtility \
+            --ignore "NotchUtilityTests/*" \
+            --ignore "NotchUtilityUITests/*" \
+            --output-directory coverage \
+            NotchUtility.xcodeproj
+            
+      - name: Upload coverage to Coveralls
+        if: contains(matrix.destination, 'arm64')
+        uses: coverallsapp/github-action@v2
+        with:
+          github-token: ${{ github.token }}
+          file: coverage/cobertura.xml
+        
