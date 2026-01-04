@@ -45,6 +45,10 @@ struct ToolModalView: View {
                 switch tool {
                 case .base64:
                     Base64Tool()
+                case .jsonFormatter:
+                    JSONFormatterTool()
+                case .xmlFormatter:
+                    XMLFormatterTool()
                 }
             }
             .scrollContentBackground(.hidden)
@@ -255,6 +259,42 @@ struct Base64Tool: View {
         ConversionToolView(
             defaultMode: Base64Mode.encode,
             service: Base64ToolService()
+        )
+    }
+}
+
+// MARK: - JSON Formatter Protocol Conformances
+extension JSONFormatterMode: ConversionMode {}
+
+extension JSONFormatterService: ConversionService {
+    typealias Mode = JSONFormatterMode
+    typealias ConversionError = JSONFormatterError
+}
+
+// MARK: - JSON Formatter Tool
+struct JSONFormatterTool: View {
+    var body: some View {
+        ConversionToolView(
+            defaultMode: JSONFormatterMode.beautify,
+            service: JSONFormatterService()
+        )
+    }
+}
+
+// MARK: - XML Formatter Protocol Conformances
+extension XMLFormatterMode: ConversionMode {}
+
+extension XMLFormatterService: ConversionService {
+    typealias Mode = XMLFormatterMode
+    typealias ConversionError = XMLFormatterError
+}
+
+// MARK: - XML Formatter Tool
+struct XMLFormatterTool: View {
+    var body: some View {
+        ConversionToolView(
+            defaultMode: XMLFormatterMode.beautify,
+            service: XMLFormatterService()
         )
     }
 }
