@@ -9,8 +9,6 @@ import SwiftUI
 
 // MARK: - Main Tools View
 struct ToolsView: View {
-    @State private var selectedTool: DevTool?
-    
     var body: some View {
         VStack(spacing: 8) {
             // Tools Grid
@@ -19,7 +17,7 @@ struct ToolsView: View {
             ], spacing: 8) {
                 ForEach(DevTool.allCases) { tool in
                     ToolButton(tool: tool) {
-                        selectedTool = tool
+                        ToolWindowController.show(tool: tool)
                     }
                 }
             }
@@ -29,9 +27,6 @@ struct ToolsView: View {
             RoundedRectangle(cornerRadius: 8)
                 .fill(Color(nsColor: .controlBackgroundColor).opacity(0.3))
         )
-        .sheet(isPresented: $selectedTool.isPresent()) {
-            ToolModalView(tool: selectedTool ?? .base64)
-        }
     }
 }
 

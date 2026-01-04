@@ -47,10 +47,13 @@ struct ToolModalView: View {
                     Base64Tool()
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(Color(nsColor: .windowBackgroundColor))
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(width: 600, height: 450)
         .background(Color(nsColor: .windowBackgroundColor))
+        .presentationBackground(Color(nsColor: .windowBackgroundColor))
     }
 }
 
@@ -189,6 +192,8 @@ struct ConversionToolView<Mode: ConversionMode, Service: ConversionService>: Vie
             }
         }
         .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(nsColor: .windowBackgroundColor))
     }
 
     private func convertText() {
