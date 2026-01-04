@@ -372,6 +372,13 @@ struct Base64ServiceTests {
         #expect(Base64Mode.allCases.contains(.encode))
         #expect(Base64Mode.allCases.contains(.decode))
     }
+}
+
+// MARK: - Extended Base64 Service Tests
+@MainActor
+struct Base64ServiceExtendedTests {
+    
+    let service = Base64ToolService()
     
     // MARK: - Base64Mode Identity Tests
     
@@ -512,8 +519,11 @@ struct Base64ServiceTests {
         
         for error in errors {
             // LocalizedError requires errorDescription to be non-nil
-            #expect(error.errorDescription != nil, "Error \(error) should have a description")
-            #expect(!error.errorDescription!.isEmpty, "Error description should not be empty")
+            guard let description = error.errorDescription else {
+                Issue.record("Error \(error) should have a description")
+                continue
+            }
+            #expect(!description.isEmpty, "Error description should not be empty")
         }
     }
     
