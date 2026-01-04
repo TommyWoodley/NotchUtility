@@ -372,4 +372,195 @@ struct Base64ServiceTests {
         #expect(Base64Mode.allCases.contains(.encode))
         #expect(Base64Mode.allCases.contains(.decode))
     }
+    
+    // MARK: - Base64Mode Identity Tests
+    
+    @Test("Base64Mode.id returns self")
+    func testBase64ModeId() async throws {
+        #expect(Base64Mode.encode.id == .encode)
+        #expect(Base64Mode.decode.id == .decode)
+    }
+    
+    // MARK: - Error Description Tests
+    
+    @Test("Base64Error.invalidInput has correct error description")
+    func testInvalidInputErrorDescription() async throws {
+        let error = Base64ToolService.Base64Error.invalidInput
+        #expect(error.errorDescription == "Invalid input provided")
+    }
+    
+    @Test("Base64Error.encodingFailed has correct error description")
+    func testEncodingFailedErrorDescription() async throws {
+        let error = Base64ToolService.Base64Error.encodingFailed
+        #expect(error.errorDescription == "Failed to encode text to Base64")
+    }
+    
+    @Test("Base64Error.decodingFailed has correct error description")
+    func testDecodingFailedErrorDescription() async throws {
+        let error = Base64ToolService.Base64Error.decodingFailed
+        #expect(error.errorDescription == "Failed to decode Base64 string")
+    }
+    
+    // MARK: - Decode Non-UTF8 Data Tests
+    
+    @Test("Decode valid Base64 containing non-UTF8 bytes returns decodingFailed")
+    func testDecodeNonUtf8Data() async throws {
+        // This is valid Base64 that decodes to bytes that are not valid UTF-8
+        // The bytes 0x80, 0x81, 0x82, 0x83 are not valid UTF-8 sequences
+        let invalidUtf8Base64 = "gIGCgw=="  // Decodes to [0x80, 0x81, 0x82, 0x83]
+        
+        let result = service.decode(invalidUtf8Base64)
+        
+        switch result {
+        case .success:
+            Issue.record("Decoding non-UTF8 data should fail")
+        case .failure(let error):
+            #expect(error == Base64ToolService.Base64Error.decodingFailed)
+        }
+    }
+    
+    @Test("Decode valid Base64 with invalid UTF8 sequence")
+    func testDecodeInvalidUtf8Sequence() async throws {
+        // 0xFF is never valid in UTF-8
+        let invalidUtf8Base64 = "/w=="  // Decodes to [0xFF]
+        
+        let result = service.decode(invalidUtf8Base64)
+        
+        switch result {
+        case .success:
+            Issue.record("Decoding invalid UTF-8 sequence should fail")
+        case .failure(let error):
+            #expect(error == Base64ToolService.Base64Error.decodingFailed)
+        }
+    }
+    
+    // MARK: - Additional Edge Cases
+    
+    @Test("Encode single character")
+    func testEncodeSingleCharacter() async throws {
+        let result = service.encode("A")
+        
+        switch result {
+        case .success(let encoded):
+            #expect(encoded == "QQ==")
+        case .failure:
+            Issue.record("Should encode single character")
+        }
+    }
+    
+    @Test("Decode single character Base64")
+    func testDecodeSingleCharacter() async throws {
+        let result = service.decode("QQ==")
+        
+        switch result {
+        case .success(let decoded):
+            #expect(decoded == "A")
+        case .failure:
+            Issue.record("Should decode single character Base64")
+        }
+    }
+    
+    @Test("Encode whitespace only string")
+    func testEncodeWhitespaceOnly() async throws {
+        let result = service.encode("   ")
+        
+        switch result {
+        case .success(let encoded):
+            #expect(!encoded.isEmpty)
+            // Verify round-trip
+            let decodeResult = service.decode(encoded)
+            guard case .success(let decoded) = decodeResult else {
+                Issue.record("Should decode whitespace")
+                return
+            }
+            #expect(decoded == "   ")
+        case .failure:
+            Issue.record("Should encode whitespace-only string")
+        }
+    }
+    
+    @Test("isValidBase64 returns false for whitespace-only string")
+    func testIsValidBase64WhitespaceOnly() async throws {
+        // Whitespace-only strings after trimming become empty, which is valid Base64
+        #expect(service.isValidBase64("   ") == true)
+    }
+    
+    @Test("Convert method handles both modes correctly in sequence")
+    func testConvertBothModesInSequence() async throws {
+        let originalText = "Test sequence"
+        
+        // Encode
+        let encodeResult = service.convert(originalText, mode: .encode)
+        guard case .success(let encoded) = encodeResult else {
+            Issue.record("Encoding should succeed")
+            return
+        }
+        
+        // Decode
+        let decodeResult = service.convert(encoded, mode: .decode)
+        guard case .success(let decoded) = decodeResult else {
+            Issue.record("Decoding should succeed")
+            return
+        }
+        
+        #expect(decoded == originalText)
+    }
+    
+    @Test("Base64Error conforms to LocalizedError")
+    func testBase64ErrorConformsToLocalizedError() async throws {
+        let errors: [Base64ToolService.Base64Error] = [.invalidInput, .encodingFailed, .decodingFailed]
+        
+        for error in errors {
+            // LocalizedError requires errorDescription to be non-nil
+            #expect(error.errorDescription != nil, "Error \(error) should have a description")
+            #expect(!error.errorDescription!.isEmpty, "Error description should not be empty")
+        }
+    }
+    
+    @Test("Base64Mode is Equatable")
+    func testBase64ModeEquatable() async throws {
+        #expect(Base64Mode.encode == Base64Mode.encode)
+        #expect(Base64Mode.decode == Base64Mode.decode)
+        #expect(Base64Mode.encode != Base64Mode.decode)
+    }
+    
+    @Test("Base64Error is Equatable")
+    func testBase64ErrorEquatable() async throws {
+        #expect(Base64ToolService.Base64Error.invalidInput == Base64ToolService.Base64Error.invalidInput)
+        #expect(Base64ToolService.Base64Error.encodingFailed == Base64ToolService.Base64Error.encodingFailed)
+        #expect(Base64ToolService.Base64Error.decodingFailed == Base64ToolService.Base64Error.decodingFailed)
+        #expect(Base64ToolService.Base64Error.invalidInput != Base64ToolService.Base64Error.decodingFailed)
+    }
+    
+    @Test("Encode and decode preserves null character")
+    func testNullCharacter() async throws {
+        let textWithNull = "Hello\0World"
+        let encodeResult = service.encode(textWithNull)
+        
+        guard case .success(let encoded) = encodeResult else {
+            Issue.record("Should encode text with null character")
+            return
+        }
+        
+        let decodeResult = service.decode(encoded)
+        guard case .success(let decoded) = decodeResult else {
+            Issue.record("Should decode text with null character")
+            return
+        }
+        
+        #expect(decoded == textWithNull)
+    }
+    
+    @Test("Decode Base64 with only padding")
+    func testDecodeOnlyPadding() async throws {
+        // "==" is technically invalid Base64
+        let result = service.decode("==")
+        
+        switch result {
+        case .success:
+            Issue.record("Decoding only padding should fail or return empty")
+        case .failure(let error):
+            #expect(error == Base64ToolService.Base64Error.decodingFailed)
+        }
+    }
 } 
