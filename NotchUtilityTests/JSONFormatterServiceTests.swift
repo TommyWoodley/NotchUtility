@@ -95,7 +95,6 @@ struct JSONFormatterServiceTests {
             Issue.record("Beautify should fail for invalid JSON")
         case .failure(let error):
             if case .invalidJSON = error {
-                // Expected
             } else {
                 Issue.record("Should return invalidJSON error")
             }
@@ -166,7 +165,6 @@ struct JSONFormatterServiceTests {
             Issue.record("Minify should fail for invalid JSON")
         case .failure(let error):
             if case .invalidJSON = error {
-                // Expected
             } else {
                 Issue.record("Should return invalidJSON error")
             }
@@ -224,12 +222,17 @@ struct JSONFormatterServiceTests {
             Issue.record("Validate should fail for invalid JSON")
         case .failure(let error):
             if case .invalidJSON = error {
-                // Expected
             } else {
                 Issue.record("Should return invalidJSON error")
             }
         }
     }
+}
+
+@MainActor
+struct JSONFormatterServiceExtendedTests {
+    
+    let service = JSONFormatterService()
     
     // MARK: - Convert Method Tests
     
@@ -414,4 +417,3 @@ struct JSONFormatterServiceTests {
         }
     }
 }
-

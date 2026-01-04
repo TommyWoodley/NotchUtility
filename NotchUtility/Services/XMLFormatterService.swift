@@ -30,7 +30,7 @@ enum XMLFormatterMode: CaseIterable, Identifiable {
     }
     
     var inputLabel: String {
-        return "XML Input:"
+        "XML Input:"
     }
     
     var outputLabel: String {

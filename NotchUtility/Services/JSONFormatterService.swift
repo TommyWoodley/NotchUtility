@@ -30,7 +30,7 @@ enum JSONFormatterMode: CaseIterable, Identifiable {
     }
     
     var inputLabel: String {
-        return "JSON Input:"
+        "JSON Input:"
     }
     
     var outputLabel: String {

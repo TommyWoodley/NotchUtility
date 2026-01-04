@@ -93,7 +93,6 @@ struct XMLFormatterServiceTests {
             Issue.record("Beautify should fail for invalid XML")
         case .failure(let error):
             if case .invalidXML = error {
-                // Expected
             } else {
                 Issue.record("Should return invalidXML error")
             }
@@ -160,7 +159,6 @@ struct XMLFormatterServiceTests {
             Issue.record("Minify should fail for invalid XML")
         case .failure(let error):
             if case .invalidXML = error {
-                // Expected
             } else {
                 Issue.record("Should return invalidXML error")
             }
@@ -219,12 +217,17 @@ struct XMLFormatterServiceTests {
             Issue.record("Validate should fail for invalid XML")
         case .failure(let error):
             if case .invalidXML = error {
-                // Expected
             } else {
                 Issue.record("Should return invalidXML error")
             }
         }
     }
+}
+
+@MainActor
+struct XMLFormatterServiceExtendedTests {
+    
+    let service = XMLFormatterService()
     
     // MARK: - Convert Method Tests
     
@@ -422,4 +425,3 @@ struct XMLFormatterServiceTests {
         }
     }
 }
-
